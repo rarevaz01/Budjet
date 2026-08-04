@@ -1,15 +1,18 @@
 <!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <style>
-:root{--bg:#151316;--card:#1e1b1f;--line:#2c282c;--text:#f4f2f0;--muted:#8d8790;--accent:#e8c96b}
+:root{--bg:#151316;--card:#1e1b1f;--line:#2c282c;--text:#f4f2f0;--muted:#8d8790;--accent:#e8c96b;--btn-text:#151316;--white-seg:#f4f2f0;--track:#2c282c}
+[data-theme="light"]{--bg:#f4f2f0;--card:#ffffff;--line:#e2ddd8;--text:#1c1a1c;--muted:#8a8286;--accent:#e8c96b;--btn-text:#1c1a1c;--white-seg:#c9c4c0;--track:#e2ddd8}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,sans-serif}
 body{padding:20px 14px;display:flex;justify-content:center}
 .card{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:20px 16px;width:100%;max-width:560px}
-.head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px}
 h1{font-weight:800;font-size:26px;margin:0}
-#status{font-size:12px;color:var(--muted)}
+.month-row{display:flex;align-items:center;gap:8px;margin-bottom:18px}
+.month-select{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:10px;color:var(--text);font-weight:700;font-size:14px;padding:9px 10px;flex:1;min-width:0}
+.month-add{background:var(--accent);color:var(--btn-text);border:none;border-radius:10px;padding:9px 12px;font-weight:700;font-size:13px;flex-shrink:0;white-space:nowrap}
+#status{font-size:11px;color:var(--muted)}
 #status.err{color:#e57373}
-#saveBtn{background:var(--accent);color:#151316;border:none;border-radius:10px;padding:8px 14px;font-weight:700;font-size:13px}
 .chart-col{display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:18px}
 svg{overflow:visible}
 .tot{display:flex;gap:20px;font-size:12px;color:var(--muted);text-align:center}
@@ -30,17 +33,20 @@ svg{overflow:visible}
 .comment-input{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:10px;color:var(--text);font-size:12px;padding:9px 10px;width:100%;min-width:0;height:40px;margin-top:6px}
 .comment-input::placeholder{color:var(--muted)}
 .plus-row{display:flex;align-items:center;gap:6px}
-.plus-btn{background:#7fa88f;border:none;color:#151316;font-weight:800;font-size:18px;width:40px;height:40px;border-radius:10px;flex-shrink:0}
+.plus-btn{background:#7fa88f;border:none;color:var(--btn-text);font-weight:800;font-size:18px;width:40px;height:40px;border-radius:10px;flex-shrink:0}
 .hist-toggle{background:none;border:none;color:var(--muted);font-size:10px;text-decoration:underline;padding:2px 4px;flex-shrink:0}
 .hist{margin-top:6px;padding-left:18px;display:none}
 .hist.open{display:block}
-.hist-item{display:flex;flex-direction:column;gap:1px;font-size:11px;color:var(--muted);padding:4px 0}
+.hist-item{display:flex;flex-direction:column;gap:1px;font-size:13px;color:var(--muted);padding:6px 0}
 .hist-item .hist-top{display:flex;gap:10px;align-items:center}
-.hist-item b{color:var(--text);font-weight:600}
-.hist-item .hist-comment{color:var(--muted);font-size:11px;padding-left:0;font-style:italic}
+.hist-item b{color:var(--text);font-weight:600;font-size:14px}
+.hist-item .hist-comment{color:var(--muted);font-size:13px;font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;cursor:pointer}
+.hist-item .hist-comment.expanded{white-space:normal;overflow:visible;text-overflow:clip}
 .hist-del{background:none;border:none;color:var(--muted);font-size:13px;width:20px;height:20px;border-radius:5px;margin-left:auto;flex-shrink:0}
 .add{margin-top:12px;background:none;border:1px dashed var(--line);color:var(--muted);font-weight:600;font-size:12px;padding:9px 12px;border-radius:12px;width:100%;text-align:left}
-.globalhist-btn{margin-top:10px;background:none;border:1px solid var(--line);color:var(--text);font-weight:600;font-size:13px;padding:11px 12px;border-radius:12px;width:100%;text-align:center}
+.bottom-row{display:flex;gap:8px;margin-top:10px}
+.globalhist-btn{background:none;border:1px solid var(--line);color:var(--text);font-weight:600;font-size:13px;padding:11px 12px;border-radius:12px;flex:1;text-align:center}
+.theme-btn{background:none;border:1px solid var(--line);color:var(--text);font-weight:600;font-size:18px;width:44px;height:auto;border-radius:12px;flex-shrink:0}
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:flex-end;justify-content:center;z-index:100}
 .overlay.open{display:flex}
 .sheet{background:var(--card);width:100%;max-width:560px;max-height:85vh;border-radius:20px 20px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));overflow-y:auto}
@@ -56,10 +62,14 @@ svg{overflow:visible}
 .gh-editrow{display:flex;align-items:center;gap:6px;margin-top:6px}
 .gh-amt-input{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:8px;color:var(--text);font-weight:700;font-size:13px;padding:6px 8px;width:90px;text-align:center}
 .gh-comment-input{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:8px;color:var(--text);font-size:12px;padding:6px 8px;flex:1;min-width:0}
-.gh-save{background:#7fa88f;border:none;color:#151316;font-weight:700;font-size:12px;padding:7px 10px;border-radius:8px;flex-shrink:0}
+.gh-save{background:#7fa88f;border:none;color:var(--btn-text);font-weight:700;font-size:12px;padding:7px 10px;border-radius:8px;flex-shrink:0}
 .gh-del{background:none;border:none;color:var(--muted);font-size:14px;width:26px;height:26px;border-radius:6px;flex-shrink:0}
 </style></head><body><div class="card">
-<div class="head"><h1>Бюджет</h1><div style="display:flex;align-items:center;gap:8px"><span id="status"></span><button id="saveBtn">Сохранить</button></div></div>
+<div class="head"><h1>Бюджет</h1><span id="status"></span></div>
+<div class="month-row">
+  <select class="month-select" id="monthSelect"></select>
+  <button class="month-add" id="newMonthBtn">+ Новый месяц</button>
+</div>
 <div class="chart-col">
 <svg id="donut" width="220" height="220" viewBox="0 0 300 300"></svg>
 <div class="tot"><div>Бюджет<b id="bd">-</b></div><div>Остаток<b id="ld">-</b></div></div>
@@ -67,7 +77,10 @@ svg{overflow:visible}
 </div>
 <div id="rows"></div>
 <button class="add" id="addRow">+ Добавить категорию</button>
-<button class="globalhist-btn" id="openGlobalHist">История всех трат</button>
+<div class="bottom-row">
+  <button class="globalhist-btn" id="openGlobalHist">История всех трат</button>
+  <button class="theme-btn" id="themeToggle">☀︎</button>
+</div>
 </div>
 <div class="overlay" id="ghOverlay">
   <div class="sheet">
@@ -77,29 +90,86 @@ svg{overflow:visible}
 </div>
 <script>
 const P=["#e8c96b","#c97b5c","#7fa88f","#6f8fc9","#b47fc9","#d98fa0","#8fb4d9","#c9a87f","#9fc97f","#c97fa8","#7fc9c0","#c9c07f"];
-const K="icity-budget-v1";
-let B=300000,C=[{n:"Аренда",a:56000,h:[]},{n:"Транспорт",a:7000,h:[]},{n:"Одежда",a:15000,h:[]},{n:"Развлечения",a:8000,h:[]},{n:"Путешествия",a:20000,h:[]},{n:"Дети",a:30000,h:[]}];
+const K="icity-budget-v2";
+const MONTH_NAMES=["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
+
+function monthKey(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+function monthLabel(key){
+  const [y,m] = key.split('-').map(Number);
+  return MONTH_NAMES[m-1]+' '+y;
+}
+function defaultMonthData(){
+  return {
+    B:300000,
+    C:[{n:"Аренда",a:56000,h:[]},{n:"Транспорт",a:7000,h:[]},{n:"Одежда",a:15000,h:[]},{n:"Развлечения",a:8000,h:[]},{n:"Путешествия",a:20000,h:[]},{n:"Дети",a:30000,h:[]}],
+    EV:[]
+  };
+}
+
+let STORE = { months:{}, current:null };
 try{
   const r=localStorage.getItem(K);
   if(r){
     const p=JSON.parse(r);
-    if(p.B!=null)B=p.B;
-    if(Array.isArray(p.C))C=p.C.map(c=>({n:c.n,a:c.a,h:Array.isArray(c.h)?c.h:[]}));
+    if(p && typeof p.months==='object') STORE.months=p.months;
+    if(p && p.current) STORE.current=p.current;
   }
 }catch(e){}
-const rowsEl=document.getElementById('rows'),svg=document.getElementById('donut'),bi=document.getElementById('bi'),st=document.getElementById('status'),sb=document.getElementById('saveBtn');
+
+const nowKey = monthKey(new Date());
+if(Object.keys(STORE.months).length===0){
+  STORE.months[nowKey] = defaultMonthData();
+  STORE.current = nowKey;
+}
+if(!STORE.current || !STORE.months[STORE.current]){
+  const keys = Object.keys(STORE.months).sort();
+  STORE.current = keys[keys.length-1];
+}
+
+// active month's data, aliased for convenience
+function cur(){ return STORE.months[STORE.current]; }
+
+const rowsEl=document.getElementById('rows'),svg=document.getElementById('donut'),bi=document.getElementById('bi'),st=document.getElementById('status');
+const monthSelect=document.getElementById('monthSelect');
+
 function fmt(n){return new Intl.NumberFormat('ru-RU').format(Math.round(n||0))}
 function strip(v){return v.replace(/[^0-9.]/g,'').replace(/^0+(?=\d)/,'')}
 function fmtDate(iso){
   const d=new Date(iso);
   return d.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'})+' '+d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
 }
-function save(){try{localStorage.setItem(K,JSON.stringify({B,C}));st.textContent="Сохранено ✓";st.classList.remove('err');setTimeout(()=>st.textContent='',1500)}catch(e){st.textContent="Ошибка";st.classList.add('err')}}
+function save(){
+  try{
+    localStorage.setItem(K,JSON.stringify(STORE));
+    st.textContent="Сохранено ✓";
+    st.classList.remove('err');
+    setTimeout(()=>st.textContent='',1200);
+  }catch(e){
+    st.textContent="Ошибка сохранения";
+    st.classList.add('err');
+  }
+}
 let t=null;function sched(){if(t)clearTimeout(t);t=setTimeout(save,800)}
+function cssVar(name){return getComputedStyle(document.documentElement).getPropertyValue(name).trim()}
 function pol(cx,cy,r,a){const x=a*Math.PI/180;return{x:cx+r*Math.cos(x),y:cy+r*Math.sin(x)}}
 function arc(cx,cy,r,s,e){const S=pol(cx,cy,r,s),E=pol(cx,cy,r,e),L=e-s<=180?0:1;return`M ${S.x} ${S.y} A ${r} ${r} 0 ${L} 1 ${E.x} ${E.y}`}
 
+function renderMonthSelect(){
+  const keys = Object.keys(STORE.months).sort();
+  monthSelect.innerHTML = keys.map(k=>`<option value="${k}" ${k===STORE.current?'selected':''}>${monthLabel(k)}</option>`).join('');
+}
+
+function switchMonth(key){
+  if(!STORE.months[key]) return;
+  STORE.current = key;
+  bi.value = String(cur().B);
+  renderRows();
+  renderChart();
+  save();
+}
+
 function renderRows(){
+  const C = cur().C;
   const openHist = new Set();
   document.querySelectorAll('.hist.open').forEach(el=>openHist.add(el.id));
   const total=C.reduce((s,c)=>s+(parseFloat(c.a)||0),0);
@@ -117,15 +187,15 @@ function renderRows(){
         <button class="del" data-i="${i}">×</button>
       </div>
       <div class="row-bottom">
-        <div class="plus-row">
+        <form class="plus-row" data-plusform="${i}">
           <input class="plus-input" type="text" inputmode="decimal" placeholder="добавить" data-i="${i}" data-plus="1">
-          <button class="plus-btn" data-i="${i}" data-addbtn="1">+</button>
-          ${histCount>0?`<button class="hist-toggle" data-i="${i}" data-histbtn="1">история (${histCount})</button>`:''}
-        </div>
-        <input class="comment-input" type="text" placeholder="комментарий (необязательно)" data-i="${i}" data-comment="1">
+          <button class="plus-btn" type="submit">+</button>
+          ${histCount>0?`<button class="hist-toggle" type="button" data-i="${i}" data-histbtn="1">история (${histCount})</button>`:''}
+        </form>
+        <input class="comment-input" type="text" placeholder="комментарий" data-i="${i}" data-comment="1">
       </div>
       <div class="hist${openHist.has('hist-'+i)?' open':''}" id="hist-${i}">
-        ${(c.h||[]).map((item,hi)=>({item,hi})).reverse().map(({item,hi})=>`<div class="hist-item"><div class="hist-top"><span>${fmtDate(item.d)}</span><b>+${fmt(item.a)}</b><button class="hist-del" data-i="${i}" data-hi="${hi}">×</button></div>${item.c?`<div class="hist-comment">${item.c.replace(/</g,'&lt;')}</div>`:''}</div>`).join('')}
+        ${(c.h||[]).map((item,hi)=>({item,hi})).reverse().map(({item,hi})=>`<div class="hist-item"><div class="hist-top"><span>${fmtDate(item.d)}</span><b>+${fmt(item.a)}</b>${item.c?`<span class="hist-comment" data-commenttoggle="1">${item.c.replace(/</g,'&lt;')}</span>`:''}<button class="hist-del" data-i="${i}" data-hi="${hi}">×</button></div></div>`).join('')}
       </div>
     `;
     rowsEl.appendChild(row);
@@ -134,34 +204,24 @@ function renderRows(){
 }
 
 function renderChart(){
-  const total=C.reduce((s,c)=>s+(parseFloat(c.a)||0),0),left=B-total;
-  document.getElementById('bd').textContent=fmt(B);
+  const m = cur();
+  const total=m.C.reduce((s,c)=>s+(parseFloat(c.a)||0),0),left=m.B-total;
+  document.getElementById('bd').textContent=fmt(m.B);
   const ld=document.getElementById('ld');ld.textContent=fmt(left);ld.classList.toggle('neg',left<0);
   svg.innerHTML='';
-  const cx=150,cy=150,r=130,ri=78,ns="http://www.w3.org/2000/svg",ct=Math.max(B,total);
-  if(ct<=0){const c=document.createElementNS(ns,"circle");c.setAttribute("cx",cx);c.setAttribute("cy",cy);c.setAttribute("r",r);c.setAttribute("fill","none");c.setAttribute("stroke","#2c282c");c.setAttribute("stroke-width",r-ri);svg.appendChild(c)}
+  const cx=150,cy=150,r=130,ri=78,ns="http://www.w3.org/2000/svg",ct=Math.max(m.B,total);
+  if(ct<=0){const c=document.createElementNS(ns,"circle");c.setAttribute("cx",cx);c.setAttribute("cy",cy);c.setAttribute("r",r);c.setAttribute("fill","none");c.setAttribute("stroke",cssVar('--track'));c.setAttribute("stroke-width",r-ri);svg.appendChild(c)}
   else{
     let a=-90;
-    C.forEach((c,i)=>{const v=parseFloat(c.a)||0;if(v<=0)return;const f=v/ct,sw=f*360;const p=arc(cx,cy,(r+ri)/2,a,a+sw);const el=document.createElementNS(ns,"path");el.setAttribute("d",p);el.setAttribute("stroke",P[i%P.length]);el.setAttribute("stroke-width",r-ri);el.setAttribute("fill","none");svg.appendChild(el);a+=sw});
-    if(left>0){const f=left/ct,sw=f*360;const p=arc(cx,cy,(r+ri)/2,a,a+sw);const el=document.createElementNS(ns,"path");el.setAttribute("d",p);el.setAttribute("stroke","#f4f2f0");el.setAttribute("stroke-width",r-ri);el.setAttribute("fill","none");svg.appendChild(el)}
+    m.C.forEach((c,i)=>{const v=parseFloat(c.a)||0;if(v<=0)return;const f=v/ct,sw=f*360;const p=arc(cx,cy,(r+ri)/2,a,a+sw);const el=document.createElementNS(ns,"path");el.setAttribute("d",p);el.setAttribute("stroke",P[i%P.length]);el.setAttribute("stroke-width",r-ri);el.setAttribute("fill","none");svg.appendChild(el);a+=sw});
+    if(left>0){const f=left/ct,sw=f*360;const p=arc(cx,cy,(r+ri)/2,a,a+sw);const el=document.createElementNS(ns,"path");el.setAttribute("d",p);el.setAttribute("stroke",cssVar('--white-seg'));el.setAttribute("stroke-width",r-ri);el.setAttribute("fill","none");svg.appendChild(el)}
   }
-  const t1=document.createElementNS(ns,"text");t1.setAttribute("x",cx);t1.setAttribute("y",cy-4);t1.setAttribute("text-anchor","middle");t1.setAttribute("fill","#f4f2f0");t1.setAttribute("font-weight","800");t1.setAttribute("font-size",total>=1000000?26:32);t1.textContent=fmt(total);svg.appendChild(t1);
-  const t2=document.createElementNS(ns,"text");t2.setAttribute("x",cx);t2.setAttribute("y",cy+18);t2.setAttribute("text-anchor","middle");t2.setAttribute("fill","#8d8790");t2.setAttribute("font-size","10");t2.textContent="РАСХОДЫ";svg.appendChild(t2);
-}
-
-function pctAndAmountOnly(){
-  const total=C.reduce((s,c)=>s+(parseFloat(c.a)||0),0);
-  document.querySelectorAll('.pct').forEach((el,i)=>{
-    const v=parseFloat(C[i].a)||0;
-    el.textContent=(total>0?(v/total*100):0).toFixed(1)+'%';
-  });
-  C.forEach((c,i)=>{
-    const el=document.getElementById('amt-'+i);
-    if(el) el.textContent=fmt(c.a);
-  });
+  const t1=document.createElementNS(ns,"text");t1.setAttribute("x",cx);t1.setAttribute("y",cy-4);t1.setAttribute("text-anchor","middle");t1.setAttribute("fill",cssVar('--text'));t1.setAttribute("font-weight","800");t1.setAttribute("font-size",total>=1000000?26:32);t1.textContent=fmt(total);svg.appendChild(t1);
+  const t2=document.createElementNS(ns,"text");t2.setAttribute("x",cx);t2.setAttribute("y",cy+18);t2.setAttribute("text-anchor","middle");t2.setAttribute("fill",cssVar('--muted'));t2.setAttribute("font-size","10");t2.textContent="РАСХОДЫ";svg.appendChild(t2);
 }
 
 function addExpense(i, amount, comment){
+  const C = cur().C;
   if(!amount || amount<=0) return;
   C[i].a = (parseFloat(C[i].a)||0) + amount;
   if(!C[i].h) C[i].h=[];
@@ -175,6 +235,7 @@ function addExpense(i, amount, comment){
 }
 
 function deleteExpense(i, hi){
+  const C = cur().C;
   const entry = C[i].h[hi];
   if(!entry) return;
   const label = entry.c ? `${fmt(entry.a)} (${entry.c})` : fmt(entry.a);
@@ -187,6 +248,7 @@ function deleteExpense(i, hi){
 }
 
 function editExpense(i, hi, newAmount, newComment){
+  const C = cur().C;
   const entry = C[i].h[hi];
   if(!entry) return;
   const oldAmount = parseFloat(entry.a)||0;
@@ -202,11 +264,21 @@ function editExpense(i, hi, newAmount, newComment){
 }
 
 function getAllExpenses(){
+  const m = cur();
   const all=[];
-  C.forEach((c,ci)=>{
+  m.C.forEach((c,ci)=>{
     (c.h||[]).forEach((item,hi)=>{
-      all.push({ci, hi, catName:c.n, catColor:P[ci%P.length], amount:item.a, comment:item.c, date:item.d});
+      all.push({kind:'expense', ci, hi, catName:c.n, catColor:P[ci%P.length], amount:item.a, comment:item.c, date:item.d});
     });
+  });
+  (m.EV||[]).forEach(ev=>{
+    if(ev.type==='del_cat'){
+      all.push({kind:'del_cat', catName:ev.name, amount:ev.amount, h:ev.h||[], date:ev.date});
+    } else if(ev.type==='add_cat'){
+      all.push({kind:'add_cat', catName:ev.name, date:ev.date});
+    } else if(ev.type==='rename_cat'){
+      all.push({kind:'rename_cat', oldName:ev.oldName, newName:ev.newName, date:ev.date});
+    }
   });
   all.sort((a,b)=> new Date(b.date) - new Date(a.date));
   return all;
@@ -222,6 +294,44 @@ function renderGlobalHist(){
     return;
   }
   ghList.innerHTML = all.map(item=>{
+    if(item.kind==='add_cat'){
+      return `
+        <div class="gh-item">
+          <div class="gh-row">
+            <div class="gh-sw" style="background:var(--muted)"></div>
+            <div class="gh-cat" style="color:#7fa88f">+ категория «${(item.catName||'').replace(/</g,'&lt;')}»</div>
+            <div class="gh-date">${fmtDate(item.date)}</div>
+          </div>
+        </div>
+      `;
+    }
+    if(item.kind==='rename_cat'){
+      return `
+        <div class="gh-item">
+          <div class="gh-row">
+            <div class="gh-sw" style="background:var(--muted)"></div>
+            <div class="gh-cat" style="color:#e8c96b">переименована «${(item.oldName||'').replace(/</g,'&lt;')}» → «${(item.newName||'').replace(/</g,'&lt;')}»</div>
+            <div class="gh-date">${fmtDate(item.date)}</div>
+          </div>
+        </div>
+      `;
+    }
+    if(item.kind==='del_cat'){
+      const hist=(item.h||[]).slice().sort((a,b)=>new Date(b.d)-new Date(a.d));
+      return `
+        <div class="gh-item">
+          <div class="gh-row">
+            <div class="gh-sw" style="background:var(--muted)"></div>
+            <div class="gh-cat" style="color:#c97b5c">удалена «${(item.catName||'').replace(/</g,'&lt;')}»</div>
+            <div class="gh-date">${fmtDate(item.date)}</div>
+          </div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px;padding-left:16px">
+            Сумма на момент удаления: <b style="color:var(--text)">${fmt(item.amount)}</b>
+            ${hist.length>0?`<div style="margin-top:4px">${hist.map(h=>`<div>• +${fmt(h.a)}${h.c?` — ${h.c.replace(/</g,'&lt;')}`:''} <span style="opacity:.7">(${fmtDate(h.d)})</span></div>`).join('')}</div>`:''}
+          </div>
+        </div>
+      `;
+    }
     const isEditing = ghEditing && ghEditing.ci===item.ci && ghEditing.hi===item.hi;
     return `
       <div class="gh-item">
@@ -275,9 +385,9 @@ function attachGlobalHist(){
     });
   });
   document.querySelectorAll('[data-ghdel]').forEach(btn=>{
-    if(!btn.dataset.ghdel) return;
     btn.addEventListener('click',e=>{
       const [ci,hi] = e.target.dataset.ghdel.split(':').map(Number);
+      const C = cur().C;
       const entry = C[ci].h[hi];
       if(!entry) return;
       const label = entry.c ? `${fmt(entry.a)} (${entry.c})` : fmt(entry.a);
@@ -293,6 +403,129 @@ function attachGlobalHist(){
   });
 }
 
+function attach(){
+  const C = cur().C;
+  document.querySelectorAll('[data-f]').forEach(inp=>{
+    inp.addEventListener('focus',e=>{
+      e.target.select();
+      e.target.dataset.prevName = e.target.value;
+    });
+    inp.addEventListener('input',e=>{
+      const i=+e.target.dataset.i;
+      C[i].n=e.target.value;
+      sched();
+    });
+    inp.addEventListener('blur',e=>{
+      const i=+e.target.dataset.i;
+      const before = e.target.dataset.prevName;
+      const after = C[i].n;
+      if(before!=null && before!==after && after && after.trim()){
+        const m = cur();
+        if(!m.EV) m.EV=[];
+        m.EV.push({type:'rename_cat', oldName:before, newName:after, date:new Date().toISOString()});
+        sched();
+        if(document.getElementById('ghOverlay').classList.contains('open')) renderGlobalHist();
+      }
+    });
+  });
+  document.querySelectorAll('.del').forEach(b=>b.addEventListener('click',e=>{
+    const i=+e.target.dataset.i;
+    const name=C[i].n||'эту категорию';
+    if(confirm(`Удалить категорию «${name}»? Это действие нельзя отменить.`)){
+      const m = cur();
+      if(!m.EV) m.EV=[];
+      m.EV.push({type:'del_cat', name:C[i].n, amount:C[i].a, h:C[i].h||[], date:new Date().toISOString()});
+      C.splice(i,1);renderRows();renderChart();sched();
+      if(document.getElementById('ghOverlay').classList.contains('open')) renderGlobalHist();
+    }
+  }));
+  document.querySelectorAll('[data-plusform]').forEach(form=>{
+    form.addEventListener('submit',e=>{
+      e.preventDefault();
+      const i=+form.dataset.plusform;
+      const inp=form.querySelector('[data-plus]');
+      const commentInp=document.querySelector(`[data-comment][data-i="${i}"]`);
+      addExpense(i, parseFloat(inp.value)||0, commentInp?commentInp.value:'');
+      inp.blur();
+    });
+  });
+  document.querySelectorAll('[data-plus]').forEach(inp=>{
+    inp.addEventListener('input',e=>{
+      const cleaned=strip(e.target.value);
+      if(cleaned!==e.target.value) e.target.value=cleaned;
+    });
+    inp.addEventListener('keydown',e=>{
+      if(e.key==='Enter'||e.key==='Go'||e.key==='Done'){
+        e.preventDefault();
+        const i=+e.target.dataset.i;
+        const commentInp=document.querySelector(`[data-comment][data-i="${i}"]`);
+        addExpense(i, parseFloat(e.target.value)||0, commentInp?commentInp.value:'');
+        e.target.blur();
+      }
+    });
+  });
+  document.querySelectorAll('[data-histbtn]').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      const i=+e.target.dataset.i;
+      document.getElementById('hist-'+i).classList.toggle('open');
+    });
+  });
+  document.querySelectorAll('[data-commenttoggle]').forEach(el=>{
+    el.addEventListener('click',e=>{
+      e.target.classList.toggle('expanded');
+    });
+  });
+  document.querySelectorAll('.hist-del').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      const i=+e.target.dataset.i, hi=+e.target.dataset.hi;
+      deleteExpense(i, hi);
+      if(document.getElementById('ghOverlay').classList.contains('open')) renderGlobalHist();
+    });
+  });
+}
+
+document.getElementById('addRow').addEventListener('click',()=>{
+  const m = cur();
+  m.C.push({n:"Новая категория",a:0,h:[]});
+  if(!m.EV) m.EV=[];
+  m.EV.push({type:'add_cat', name:"Новая категория", date:new Date().toISOString()});
+  renderRows();renderChart();sched();
+  if(document.getElementById('ghOverlay').classList.contains('open')) renderGlobalHist();
+});
+
+bi.addEventListener('focus',e=>e.target.select());
+bi.addEventListener('input',e=>{
+  const cl=strip(e.target.value);
+  if(cl!==e.target.value)e.target.value=cl;
+  cur().B=parseFloat(cl)||0;
+  renderChart();sched();
+});
+bi.addEventListener('blur',()=>{bi.value=String(cur().B)});
+
+monthSelect.addEventListener('change',e=>{ switchMonth(e.target.value); });
+
+document.getElementById('newMonthBtn').addEventListener('click',()=>{
+  const keys = Object.keys(STORE.months).sort();
+  const lastKey = keys[keys.length-1];
+  const [y,m] = lastKey.split('-').map(Number);
+  let ny=y, nm=m+1;
+  if(nm>12){ nm=1; ny++; }
+  const newKey = ny+'-'+String(nm).padStart(2,'0');
+  if(STORE.months[newKey]){
+    switchMonth(newKey);
+    return;
+  }
+  const prev = STORE.months[lastKey];
+  const newCategories = prev.C.map(c=>({n:c.n, a:0, h:[]}));
+  STORE.months[newKey] = { B: prev.B, C: newCategories, EV: [] };
+  STORE.current = newKey;
+  renderMonthSelect();
+  bi.value = String(cur().B);
+  renderRows();
+  renderChart();
+  save();
+});
+
 document.getElementById('openGlobalHist').addEventListener('click',()=>{
   ghEditing = null;
   renderGlobalHist();
@@ -305,63 +538,31 @@ document.getElementById('ghOverlay').addEventListener('click',e=>{
   if(e.target.id==='ghOverlay') document.getElementById('ghOverlay').classList.remove('open');
 });
 
-function attach(){
-  document.querySelectorAll('[data-f]').forEach(inp=>{
-    inp.addEventListener('input',e=>{
-      const i=+e.target.dataset.i;
-      C[i].n=e.target.value;
-      sched();
-    });
-    inp.addEventListener('focus',e=>e.target.select());
-  });
-  document.querySelectorAll('.del').forEach(b=>b.addEventListener('click',e=>{
-    const i=+e.target.dataset.i;
-    const name=C[i].n||'эту категорию';
-    if(confirm(`Удалить категорию «${name}»? Это действие нельзя отменить.`)){
-      C.splice(i,1);renderRows();renderChart();sched();
-    }
-  }));
-  document.querySelectorAll('[data-plus]').forEach(inp=>{
-    inp.addEventListener('input',e=>{
-      const cleaned=strip(e.target.value);
-      if(cleaned!==e.target.value) e.target.value=cleaned;
-    });
-    inp.addEventListener('keydown',e=>{
-      if(e.key==='Enter'){
-        const i=+e.target.dataset.i;
-        const commentInp=document.querySelector(`[data-comment][data-i="${i}"]`);
-        addExpense(i, parseFloat(e.target.value)||0, commentInp?commentInp.value:'');
-      }
-    });
-  });
-  document.querySelectorAll('[data-addbtn]').forEach(btn=>{
-    btn.addEventListener('click',e=>{
-      const i=+e.target.dataset.i;
-      const inp=document.querySelector(`[data-plus][data-i="${i}"]`);
-      const commentInp=document.querySelector(`[data-comment][data-i="${i}"]`);
-      addExpense(i, parseFloat(inp.value)||0, commentInp?commentInp.value:'');
-    });
-  });
-  document.querySelectorAll('[data-histbtn]').forEach(btn=>{
-    btn.addEventListener('click',e=>{
-      const i=+e.target.dataset.i;
-      document.getElementById('hist-'+i).classList.toggle('open');
-    });
-  });
-  document.querySelectorAll('.hist-del').forEach(btn=>{
-    btn.addEventListener('click',e=>{
-      const i=+e.target.dataset.i, hi=+e.target.dataset.hi;
-      deleteExpense(i, hi);
-      if(document.getElementById('ghOverlay').classList.contains('open')) renderGlobalHist();
-    });
-  });
+const THEME_KEY = "icity-budget-theme";
+const themeBtn = document.getElementById('themeToggle');
+function applyTheme(theme){
+  if(theme==='light'){
+    document.documentElement.setAttribute('data-theme','light');
+    themeBtn.textContent = '☾';
+  } else {
+    document.documentElement.removeAttribute('data-theme');
+    themeBtn.textContent = '☀︎';
+  }
+  renderChart();
 }
+let savedTheme = 'dark';
+try{ savedTheme = localStorage.getItem(THEME_KEY) || 'dark'; }catch(e){}
 
-document.getElementById('addRow').addEventListener('click',()=>{C.push({n:"Новая категория",a:0,h:[]});renderRows();renderChart();sched()});
-bi.value=String(B);
-bi.addEventListener('focus',e=>e.target.select());
-bi.addEventListener('input',e=>{const cl=strip(e.target.value);if(cl!==e.target.value)e.target.value=cl;B=parseFloat(cl)||0;renderChart();sched()});
-bi.addEventListener('blur',()=>{bi.value=String(B)});
-sb.addEventListener('click',save);
-renderRows();renderChart();
+renderMonthSelect();
+bi.value = String(cur().B);
+renderRows();
+renderChart();
+applyTheme(savedTheme);
+
+themeBtn.addEventListener('click',()=>{
+  const current = document.documentElement.getAttribute('data-theme')==='light' ? 'light' : 'dark';
+  const next = current==='light' ? 'dark' : 'light';
+  applyTheme(next);
+  try{ localStorage.setItem(THEME_KEY, next); }catch(e){}
+});
 </script></body></html>
