@@ -8,10 +8,10 @@ body{padding:20px 14px;display:flex;justify-content:center}
 .card{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:20px 16px;width:100%;max-width:560px}
 .head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px}
 h1{font-weight:800;font-size:26px;margin:0}
-.month-row{display:flex;align-items:center;gap:8px;margin-bottom:18px}
+.month-row{display:flex;align-items:center;gap:8px;margin-bottom:18px;flex-wrap:wrap}
 .month-select{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:10px;color:var(--text);font-weight:700;font-size:14px;padding:9px 10px;flex:1;min-width:0}
 .month-add{background:#FFD400;color:#1A1400;border:none;border-radius:10px;padding:9px 12px;font-weight:700;font-size:13px;flex-shrink:0;white-space:nowrap}
-.month-del{background:none;border:1px solid var(--line);color:var(--muted);border-radius:10px;padding:9px 12px;font-size:15px;flex-shrink:0}
+.month-del{background:none;border:1px solid var(--line);color:var(--muted);border-radius:10px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 #status{font-size:11px;color:var(--muted)}
 #status.err{color:#e57373}
 .chart-col{display:flex;align-items:center;gap:20px;margin-bottom:18px}
@@ -78,6 +78,7 @@ svg{overflow:visible}
 .gh-tag{background:none;border:1px solid var(--line);color:var(--muted);font-size:12px;font-weight:600;padding:7px 12px;border-radius:20px}
 .gh-tag.active{background:var(--accent);color:var(--btn-text);border-color:var(--accent)}
 .sheet-close{background:none;border:none;color:var(--muted);font-size:20px;width:32px;height:32px}
+.sheet-export{background:none;border:1px solid var(--line);color:var(--muted);border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center}
 .gh-empty{color:var(--muted);font-size:13px;text-align:center;padding:30px 0}
 .gh-item{border-bottom:1px solid var(--line);padding:10px 0}
 .gh-row{display:flex;align-items:center;gap:8px}
@@ -108,7 +109,10 @@ svg{overflow:visible}
 <div class="month-row">
   <select class="month-select" id="monthSelect"></select>
   <button class="month-add" id="newMonthBtn">Новый месяц</button>
-  <button class="month-del" id="delMonthBtn">🗑</button>
+  <button class="month-add" id="newCustomMonthBtn" title="Создать период со своим названием">Своё название</button>
+  <button class="month-del" id="delMonthBtn" title="Удалить месяц" aria-label="Удалить месяц">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+  </button>
 </div>
 <div class="chart-col">
   <div class="chart-svg-wrap"><svg id="donut" width="180" height="180" viewBox="0 0 300 300"></svg></div>
@@ -135,7 +139,15 @@ svg{overflow:visible}
 </div>
 <div class="overlay" id="ghOverlay">
   <div class="sheet">
-    <div class="sheet-head"><h2>История</h2><button class="sheet-close" id="ghClose">×</button></div>
+    <div class="sheet-head">
+      <h2>История</h2>
+      <div style="display:flex;align-items:center;gap:8px">
+        <button class="sheet-export" id="ghExport" title="Выгрузить в Excel" aria-label="Выгрузить в Excel">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+        </button>
+        <button class="sheet-close" id="ghClose">×</button>
+      </div>
+    </div>
     <div class="gh-tags">
       <button class="gh-tag active" data-ghtag="all">Все</button>
       <button class="gh-tag" data-ghtag="expense">Траты</button>
@@ -157,8 +169,14 @@ const MONTH_NAMES=["Январь","Февраль","Март","Апрель","М
 
 function monthKey(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
 function monthLabel(key){
-  const [y,m] = key.split('-').map(Number);
-  return MONTH_NAMES[m-1]+' '+y;
+  const month = STORE.months[key];
+  if(month && month.customName) return month.customName;
+  const parts = key.split('-');
+  if(parts.length===2 && /^\d+$/.test(parts[0]) && /^\d+$/.test(parts[1])){
+    const y = +parts[0], m = +parts[1];
+    return MONTH_NAMES[m-1]+' '+y;
+  }
+  return key;
 }
 function defaultMonthData(){
   return {
@@ -169,7 +187,7 @@ function defaultMonthData(){
   };
 }
 
-let STORE = { months:{}, current:null, deletedMonths:[] };
+let STORE = { months:{}, current:null, deletedMonths:[], order:[] };
 try{
   const r=localStorage.getItem(K);
   if(r){
@@ -177,6 +195,7 @@ try{
     if(p && typeof p.months==='object') STORE.months=p.months;
     if(p && p.current) STORE.current=p.current;
     if(p && Array.isArray(p.deletedMonths)) STORE.deletedMonths=p.deletedMonths;
+    if(p && Array.isArray(p.order)) STORE.order=p.order;
   }
 }catch(e){}
 
@@ -188,6 +207,14 @@ if(Object.keys(STORE.months).length===0){
 if(!STORE.current || !STORE.months[STORE.current]){
   const keys = Object.keys(STORE.months).sort();
   STORE.current = keys[keys.length-1];
+}
+
+// migrate: build/repair order array so it contains exactly the existing month keys
+{
+  const existing = Object.keys(STORE.months);
+  const known = new Set(STORE.order);
+  const missing = existing.filter(k=>!known.has(k)).sort();
+  STORE.order = STORE.order.filter(k=>STORE.months[k]).concat(missing);
 }
 
 // migrate old data without fixed category colors
@@ -239,7 +266,7 @@ function arc(cx,cy,r,s,e){
 }
 
 function renderMonthSelect(){
-  const keys = Object.keys(STORE.months).sort();
+  const keys = STORE.order.filter(k=>STORE.months[k]);
   monthSelect.innerHTML = keys.map(k=>`<option value="${k}" ${k===STORE.current?'selected':''}>${monthLabel(k)}</option>`).join('');
 }
 
@@ -646,6 +673,7 @@ function attachGlobalHist(){
         return;
       }
       STORE.months[dm.key] = dm.data;
+      if(!STORE.order.includes(dm.key)) STORE.order.push(dm.key);
       dm.restored = true;
       STORE.current = dm.key;
       renderMonthSelect();
@@ -842,8 +870,8 @@ incomeBtn.addEventListener('click',()=>{
 monthSelect.addEventListener('change',e=>{ switchMonth(e.target.value); });
 
 document.getElementById('newMonthBtn').addEventListener('click',()=>{
-  const keys = Object.keys(STORE.months).sort();
-  const lastKey = keys[keys.length-1];
+  const calendarKeys = Object.keys(STORE.months).filter(k=>/^\d{4}-\d{2}$/.test(k)).sort();
+  const lastKey = calendarKeys.length ? calendarKeys[calendarKeys.length-1] : monthKey(new Date());
   const [y,m] = lastKey.split('-').map(Number);
   let ny=y, nm=m+1;
   if(nm>12){ nm=1; ny++; }
@@ -852,9 +880,11 @@ document.getElementById('newMonthBtn').addEventListener('click',()=>{
     switchMonth(newKey);
     return;
   }
-  const prev = STORE.months[lastKey];
+  const sourceKey = STORE.order.length ? STORE.order[STORE.order.length-1] : lastKey;
+  const prev = STORE.months[sourceKey] || STORE.months[lastKey];
   const newCategories = prev.C.map(c=>({n:c.n, a:0, h:[], col:c.col || nextColor([])}));
   STORE.months[newKey] = { B: 0, C: newCategories, EV: [], IN: [] };
+  STORE.order.push(newKey);
   STORE.current = newKey;
   renderMonthSelect();
   bi.value = fmt(cur().B);
@@ -863,8 +893,26 @@ document.getElementById('newMonthBtn').addEventListener('click',()=>{
   save();
 });
 
+document.getElementById('newCustomMonthBtn').addEventListener('click',()=>{
+  const name = prompt('Название периода (например «Отпуск», «Проект X»):');
+  if(!name || !name.trim()) return;
+  const trimmed = name.trim();
+  const key = 'c'+Date.now();
+  const sourceKey = STORE.order.length ? STORE.order[STORE.order.length-1] : STORE.current;
+  const prev = STORE.months[sourceKey] || cur();
+  const newCategories = prev.C.map(c=>({n:c.n, a:0, h:[], col:c.col || nextColor([])}));
+  STORE.months[key] = { B: 0, C: newCategories, EV: [], IN: [], customName: trimmed };
+  STORE.order.push(key);
+  STORE.current = key;
+  renderMonthSelect();
+  bi.value = fmt(cur().B);
+  renderRows();
+  renderChart();
+  save();
+});
+
 document.getElementById('delMonthBtn').addEventListener('click',()=>{
-  const keys = Object.keys(STORE.months).sort();
+  const keys = Object.keys(STORE.months);
   if(keys.length<=1){
     alert('Нельзя удалить единственный месяц.');
     return;
@@ -875,7 +923,8 @@ document.getElementById('delMonthBtn').addEventListener('click',()=>{
   const data = STORE.months[key];
   STORE.deletedMonths.push({ key, label, data, date: new Date().toISOString(), restored:false });
   delete STORE.months[key];
-  const remaining = Object.keys(STORE.months).sort();
+  STORE.order = STORE.order.filter(k=>k!==key);
+  const remaining = STORE.order.filter(k=>STORE.months[k]);
   STORE.current = remaining[remaining.length-1];
   renderMonthSelect();
   bi.value = fmt(cur().B);
@@ -889,6 +938,37 @@ document.getElementById('openGlobalHist').addEventListener('click',()=>{
   ghEditing = null;
   renderGlobalHist();
   document.getElementById('ghOverlay').classList.add('open');
+});
+document.getElementById('ghExport').addEventListener('click',()=>{
+  const m = cur();
+  const rows = [];
+  m.C.forEach(c=>{
+    (c.h||[]).forEach(item=>{
+      rows.push({ date:item.d, cat:c.n, amount:item.a, comment:item.c||'' });
+    });
+  });
+  rows.sort((a,b)=> new Date(a.date) - new Date(b.date));
+  if(rows.length===0){
+    alert('Пока нет трат для выгрузки.');
+    return;
+  }
+  const esc = v => `"${String(v).replace(/"/g,'""')}"`;
+  const lines = [['Дата','Категория','Сумма','Комментарий'].map(esc).join(';')];
+  rows.forEach(r=>{
+    const d = new Date(r.date);
+    const dateStr = d.toLocaleDateString('ru-RU')+' '+d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+    lines.push([dateStr, r.cat, r.amount, r.comment].map(esc).join(';'));
+  });
+  const csv = '\uFEFF'+lines.join('\r\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `траты-${monthLabel(STORE.current).replace(/\s+/g,'_')}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 });
 document.getElementById('ghClose').addEventListener('click',()=>{
   document.getElementById('ghOverlay').classList.remove('open');
