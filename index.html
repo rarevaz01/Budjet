@@ -1,7 +1,7 @@
 <!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <style>
-:root{--bg:#151316;--card:#1e1b1f;--line:#2c282c;--text:#f4f2f0;--muted:#8d8790;--accent:#e8c96b;--btn-text:#151316;--white-seg:#f4f2f0;--track:#2c282c}
-[data-theme="light"]{--bg:#f4f2f0;--card:#ffffff;--line:#e2ddd8;--text:#1c1a1c;--muted:#8a8286;--accent:#e8c96b;--btn-text:#1c1a1c;--white-seg:#c9c4c0;--track:#e2ddd8}
+:root{--bg:#0A041A;--card:#150B2E;--line:#251643;--text:#F4F2F8;--muted:#9A8FBA;--accent:#F79009;--btn-text:#0A041A;--white-seg:#F4F2F8;--track:#251643}
+[data-theme="light"]{--bg:#F5F3FA;--card:#ffffff;--line:#E5E1EF;--text:#0A041A;--muted:#7C7391;--accent:#F79009;--btn-text:#0A041A;--white-seg:#DAD5E6;--track:#E5E1EF}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,sans-serif}
 body{padding:20px 14px;display:flex;justify-content:center}
@@ -20,24 +20,36 @@ h1{font-weight:800;font-size:26px;margin:0}
 .side-block{display:flex;flex-direction:column;gap:4px}
 .side-label{font-size:12px;color:var(--muted)}
 .side-value{font-size:20px;font-weight:800;color:var(--text);padding:6px 10px}
+.income-row{display:flex;gap:6px}
+.income-input{background:rgba(109,199,134,.12);border:1px solid #6DC786;border-radius:8px;color:var(--text);font-size:12px;padding:8px 8px;width:0;min-width:0;flex:1;display:none;text-align:center}
+.income-input.show{display:block}
+.income-input::placeholder{color:#a8d99a}
+.income-btn{background:#6DC786;border:none;color:var(--btn-text);font-weight:700;font-size:12px;padding:8px 10px;border-radius:8px;flex-shrink:0;white-space:nowrap}
+.income-comment{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:8px;color:var(--text);font-size:12px;padding:8px 8px;width:100%;margin-top:6px;display:none}
+.income-comment.show{display:block}
+.income-comment::placeholder{color:var(--muted)}
 .side-value.neg{color:#e57373}
 svg{overflow:visible}
-.binp{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:8px;color:var(--text);font-weight:800;font-size:20px;padding:6px 10px;width:100%;max-width:150px}
+.binp{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:8px;color:var(--text);font-weight:800;font-size:20px;padding:6px 10px;width:100%;max-width:150px;cursor:default}
+.binp:focus{outline:none}
 .row{padding:10px 0;border-bottom:1px solid var(--line)}
-.row-top{display:grid;grid-template-columns:12px minmax(0,1fr) 82px 44px 22px;align-items:center;gap:6px}
+.row-top{display:grid;grid-template-columns:20px 12px minmax(0,1fr) 82px 44px 22px;align-items:center;gap:6px}
+.move-col{display:flex;flex-direction:column;gap:1px}
+.move-btn{background:none;border:none;color:var(--muted);font-size:10px;line-height:1;padding:2px 0;width:20px;height:12px;display:flex;align-items:center;justify-content:center}
+.move-btn:disabled{opacity:.25}
 .sw{width:10px;height:10px;border-radius:3px}
 .ninp{background:transparent;border:none;color:var(--text);font-weight:600;font-size:12px;text-transform:uppercase;width:100%;min-width:0;padding:3px 2px}
 .amt-display{font-weight:700;font-size:13px;text-align:right;font-variant-numeric:tabular-nums}
 .pct{font-size:10px;color:var(--muted);text-align:right}
 .del{background:none;border:none;color:var(--muted);font-size:15px;width:22px;height:22px;border-radius:6px}
 .row-bottom{display:flex;flex-direction:column;gap:6px;margin-top:6px}
-.plus-input{background:rgba(127,168,143,.12);border:1px solid #7fa88f;border-radius:10px;color:var(--text);font-size:13px;padding:9px 10px;width:0;min-width:0;height:40px;text-align:center;display:none;flex:1}
+.plus-input{background:rgba(109,199,134,.12);border:1px solid #6DC786;border-radius:10px;color:var(--text);font-size:13px;padding:9px 10px;width:0;min-width:0;height:40px;text-align:center;display:none;flex:1}
 .plus-input.show{display:block}
 .plus-input::placeholder{color:#a8c9b4}
 .comment-input{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:10px;color:var(--text);font-size:12px;padding:9px 10px;width:100%;min-width:0;height:40px}
 .comment-input::placeholder{color:var(--muted)}
 .plus-row{display:flex;align-items:center;gap:6px;width:100%}
-.plus-btn{background:#7fa88f;border:none;color:var(--btn-text);font-weight:800;font-size:18px;width:100%;height:40px;border-radius:10px;flex-shrink:0;transition:width .15s ease}
+.plus-btn{background:#6DC786;border:none;color:var(--btn-text);font-weight:800;font-size:18px;width:100%;height:40px;border-radius:10px;flex-shrink:0;transition:width .15s ease}
 .plus-btn.compact{width:40px}
 .hist-toggle-row{display:flex;justify-content:flex-start}
 .hist-toggle{background:none;border:none;color:var(--muted);font-size:10px;text-decoration:underline;padding:2px 4px;flex-shrink:0}
@@ -58,6 +70,9 @@ svg{overflow:visible}
 .sheet{background:var(--card);width:100%;max-width:560px;max-height:85vh;border-radius:20px 20px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));overflow-y:auto}
 .sheet-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .sheet-head h2{font-size:18px;font-weight:800;margin:0}
+.gh-tags{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.gh-tag{background:none;border:1px solid var(--line);color:var(--muted);font-size:12px;font-weight:600;padding:7px 12px;border-radius:20px}
+.gh-tag.active{background:var(--accent);color:var(--btn-text);border-color:var(--accent)}
 .sheet-close{background:none;border:none;color:var(--muted);font-size:20px;width:32px;height:32px}
 .gh-empty{color:var(--muted);font-size:13px;text-align:center;padding:30px 0}
 .gh-item{border-bottom:1px solid var(--line);padding:10px 0}
@@ -68,9 +83,9 @@ svg{overflow:visible}
 .gh-editrow{display:flex;align-items:center;gap:6px;margin-top:6px}
 .gh-amt-input{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:8px;color:var(--text);font-weight:700;font-size:13px;padding:6px 8px;width:90px;text-align:center}
 .gh-comment-input{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:8px;color:var(--text);font-size:12px;padding:6px 8px;flex:1;min-width:0}
-.gh-save{background:#7fa88f;border:none;color:var(--btn-text);font-weight:700;font-size:12px;padding:7px 10px;border-radius:8px;flex-shrink:0}
+.gh-save{background:#6DC786;border:none;color:var(--btn-text);font-weight:700;font-size:12px;padding:7px 10px;border-radius:8px;flex-shrink:0}
 .gh-del{background:none;border:none;color:var(--muted);font-size:14px;width:26px;height:26px;border-radius:6px;flex-shrink:0}
-.gh-restore{background:none;border:1px solid #7fa88f;color:#7fa88f;font-weight:700;font-size:12px;padding:7px 12px;border-radius:8px}
+.gh-restore{background:none;border:1px solid #6DC786;color:#6DC786;font-weight:700;font-size:12px;padding:7px 12px;border-radius:8px}
 </style></head><body><div class="card">
 <div class="head">
   <h1>Бюджет</h1>
@@ -92,11 +107,18 @@ svg{overflow:visible}
   <div class="chart-side">
     <div class="side-block">
       <span class="side-label">Бюджет</span>
-      <input class="binp" id="bi" type="text" inputmode="decimal" value="100000">
+      <input class="binp" id="bi" type="text" inputmode="decimal" value="0" readonly>
     </div>
     <div class="side-block">
       <span class="side-label">Остаток</span>
       <span class="side-value" id="ld">-</span>
+    </div>
+    <div class="side-block">
+      <form class="income-row" id="incomeForm">
+        <input class="income-input" id="incomeAmt" type="text" inputmode="decimal" placeholder="сумма дохода">
+        <button class="income-btn" type="button" id="incomeBtn">+ Доход</button>
+      </form>
+      <input class="income-comment" id="incomeComment" type="text" placeholder="комментарий">
     </div>
   </div>
 </div>
@@ -105,12 +127,23 @@ svg{overflow:visible}
 </div>
 <div class="overlay" id="ghOverlay">
   <div class="sheet">
-    <div class="sheet-head"><h2>История трат</h2><button class="sheet-close" id="ghClose">×</button></div>
+    <div class="sheet-head"><h2>История</h2><button class="sheet-close" id="ghClose">×</button></div>
+    <div class="gh-tags">
+      <button class="gh-tag active" data-ghtag="all">Все</button>
+      <button class="gh-tag" data-ghtag="expense">Траты</button>
+      <button class="gh-tag" data-ghtag="income">Доходы</button>
+      <button class="gh-tag" data-ghtag="other">Другое</button>
+    </div>
     <div id="ghList"></div>
   </div>
 </div>
 <script>
-const P=["#e8c96b","#c97b5c","#7fa88f","#6f8fc9","#b47fc9","#d98fa0","#8fb4d9","#c9a87f","#9fc97f","#c97fa8","#7fc9c0","#c9c07f"];
+const P=["#3382F9","#F79009","#6DC786","#6699F5","#F7A83D","#8ED2A0","#1E5FC7","#C06F00","#3F8F56","#B8D0FB","#FBCE94","#C3E8CD"];
+function nextColor(existingCategories){
+  const used = (existingCategories||[]).map(c=>c.col).filter(Boolean);
+  for(const c of P){ if(!used.includes(c)) return c; }
+  return P[(existingCategories||[]).length % P.length];
+}
 const K="icity-budget-v2";
 const MONTH_NAMES=["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
 
@@ -121,9 +154,10 @@ function monthLabel(key){
 }
 function defaultMonthData(){
   return {
-    B:100000,
-    C:[{n:"Аренда",a:56000,h:[]},{n:"Транспорт",a:7000,h:[]},{n:"Одежда",a:15000,h:[]},{n:"Развлечения",a:8000,h:[]},{n:"Путешествия",a:20000,h:[]},{n:"Дети",a:30000,h:[]}],
-    EV:[]
+    B:0,
+    C:[{n:"Аренда",a:56000,h:[],col:P[0]},{n:"Транспорт",a:7000,h:[],col:P[1]},{n:"Одежда",a:15000,h:[],col:P[2]},{n:"Развлечения",a:8000,h:[],col:P[3]},{n:"Путешествия",a:20000,h:[],col:P[4]},{n:"Дети",a:30000,h:[],col:P[5]}],
+    EV:[],
+    IN:[]
   };
 }
 
@@ -148,6 +182,14 @@ if(!STORE.current || !STORE.months[STORE.current]){
   STORE.current = keys[keys.length-1];
 }
 
+// migrate old data without fixed category colors
+Object.values(STORE.months).forEach(month=>{
+  (month.C||[]).forEach((c,i)=>{
+    if(!c.col) c.col = nextColor(month.C.slice(0,i));
+  });
+  if(!Array.isArray(month.IN)) month.IN = [];
+});
+
 // active month's data, aliased for convenience
 function cur(){ return STORE.months[STORE.current]; }
 
@@ -156,6 +198,14 @@ const monthSelect=document.getElementById('monthSelect');
 
 function fmt(n){return new Intl.NumberFormat('ru-RU').format(Math.round(n||0))}
 function strip(v){return v.replace(/[^0-9.]/g,'').replace(/^0+(?=\d)/,'')}
+function formatLiveInput(inp){
+  const raw = strip(inp.value);
+  const parts = raw.split('.');
+  const intPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '\u00A0');
+  const formatted = parts.length>1 ? intPart+'.'+parts[1] : intPart;
+  inp.value = formatted;
+}
+function numVal(v){ return parseFloat(String(v).replace(/[\u00A0\s]/g,''))||0; }
 function fmtDate(iso){
   const d=new Date(iso);
   return d.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'})+' '+d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
@@ -174,7 +224,11 @@ function save(){
 let t=null;function sched(){if(t)clearTimeout(t);t=setTimeout(save,800)}
 function cssVar(name){return getComputedStyle(document.documentElement).getPropertyValue(name).trim()}
 function pol(cx,cy,r,a){const x=a*Math.PI/180;return{x:cx+r*Math.cos(x),y:cy+r*Math.sin(x)}}
-function arc(cx,cy,r,s,e){const S=pol(cx,cy,r,s),E=pol(cx,cy,r,e),L=e-s<=180?0:1;return`M ${S.x} ${S.y} A ${r} ${r} 0 ${L} 1 ${E.x} ${E.y}`}
+function arc(cx,cy,r,s,e){
+  if(e-s>=359.999) e=s+359.999;
+  const S=pol(cx,cy,r,s),E=pol(cx,cy,r,e),L=e-s<=180?0:1;
+  return`M ${S.x} ${S.y} A ${r} ${r} 0 ${L} 1 ${E.x} ${E.y}`;
+}
 
 function renderMonthSelect(){
   const keys = Object.keys(STORE.months).sort();
@@ -203,7 +257,11 @@ function renderRows(){
     const row=document.createElement('div');row.className='row';
     row.innerHTML=`
       <div class="row-top">
-        <div class="sw" style="background:${P[i%P.length]}"></div>
+        <div class="move-col">
+          <button class="move-btn" type="button" data-move="up" data-i="${i}" ${i===0?'disabled':''}>▲</button>
+          <button class="move-btn" type="button" data-move="down" data-i="${i}" ${i===C.length-1?'disabled':''}>▼</button>
+        </div>
+        <div class="sw" style="background:${c.col || P[i%P.length]}"></div>
         <input class="ninp" value="${(c.n||'').replace(/"/g,'&quot;')}" data-i="${i}" data-f="n">
         <div class="amt-display" id="amt-${i}">${fmt(c.a)}</div>
         <div class="pct">${pct.toFixed(1)}%</div>
@@ -235,7 +293,7 @@ function renderChart(){
   if(ct<=0){const c=document.createElementNS(ns,"circle");c.setAttribute("cx",cx);c.setAttribute("cy",cy);c.setAttribute("r",r);c.setAttribute("fill","none");c.setAttribute("stroke",cssVar('--track'));c.setAttribute("stroke-width",r-ri);svg.appendChild(c)}
   else{
     let a=-90;
-    m.C.forEach((c,i)=>{const v=parseFloat(c.a)||0;if(v<=0)return;const f=v/ct,sw=f*360;const p=arc(cx,cy,(r+ri)/2,a,a+sw);const el=document.createElementNS(ns,"path");el.setAttribute("d",p);el.setAttribute("stroke",P[i%P.length]);el.setAttribute("stroke-width",r-ri);el.setAttribute("fill","none");svg.appendChild(el);a+=sw});
+    m.C.forEach((c,i)=>{const v=parseFloat(c.a)||0;if(v<=0)return;const f=v/ct,sw=f*360;const p=arc(cx,cy,(r+ri)/2,a,a+sw);const el=document.createElementNS(ns,"path");el.setAttribute("d",p);el.setAttribute("stroke",c.col || P[i%P.length]);el.setAttribute("stroke-width",r-ri);el.setAttribute("fill","none");svg.appendChild(el);a+=sw});
     if(left>0){const f=left/ct,sw=f*360;const p=arc(cx,cy,(r+ri)/2,a,a+sw);const el=document.createElementNS(ns,"path");el.setAttribute("d",p);el.setAttribute("stroke",cssVar('--white-seg'));el.setAttribute("stroke-width",r-ri);el.setAttribute("fill","none");svg.appendChild(el)}
   }
   const t1=document.createElementNS(ns,"text");t1.setAttribute("x",cx);t1.setAttribute("y",cy-4);t1.setAttribute("text-anchor","middle");t1.setAttribute("fill",cssVar('--text'));t1.setAttribute("font-weight","800");t1.setAttribute("font-size",total>=1000000?26:32);t1.textContent=fmt(total);svg.appendChild(t1);
@@ -253,6 +311,53 @@ function addExpense(i, amount, comment){
   renderRows();
   renderChart();
   if(document.getElementById('ghOverlay').classList.contains('open')) renderGlobalHist();
+  save();
+}
+
+function addIncome(amount, comment){
+  const m = cur();
+  if(!amount || amount<=0) return;
+  m.B = (parseFloat(m.B)||0) + amount;
+  if(!m.IN) m.IN=[];
+  const entry = {a:amount, d:new Date().toISOString()};
+  if(comment && comment.trim()) entry.c = comment.trim();
+  m.IN.push(entry);
+  bi.value = fmt(m.B);
+  renderRows();
+  renderChart();
+  if(document.getElementById('ghOverlay').classList.contains('open')) renderGlobalHist();
+  save();
+}
+
+function deleteIncome(ii){
+  const m = cur();
+  const entry = (m.IN||[])[ii];
+  if(!entry) return;
+  const label = entry.c ? `${fmt(entry.a)} (${entry.c})` : fmt(entry.a);
+  if(!confirm(`Удалить доход +${label}? Бюджет уменьшится.`)) return;
+  m.B = (parseFloat(m.B)||0) - (parseFloat(entry.a)||0);
+  m.IN.splice(ii,1);
+  bi.value = fmt(m.B);
+  renderRows();
+  renderChart();
+  renderGlobalHist();
+  save();
+}
+
+function editIncome(ii, newAmount, newComment){
+  const m = cur();
+  const entry = (m.IN||[])[ii];
+  if(!entry) return;
+  const oldAmount = parseFloat(entry.a)||0;
+  const diff = (newAmount||0) - oldAmount;
+  m.B = (parseFloat(m.B)||0) + diff;
+  entry.a = newAmount||0;
+  entry.c = newComment && newComment.trim() ? newComment.trim() : undefined;
+  if(!entry.c) delete entry.c;
+  bi.value = fmt(m.B);
+  renderRows();
+  renderChart();
+  renderGlobalHist();
   save();
 }
 
@@ -290,8 +395,11 @@ function getAllExpenses(){
   const all=[];
   m.C.forEach((c,ci)=>{
     (c.h||[]).forEach((item,hi)=>{
-      all.push({kind:'expense', ci, hi, catName:c.n, catColor:P[ci%P.length], amount:item.a, comment:item.c, date:item.d});
+      all.push({kind:'expense', ci, hi, catName:c.n, catColor:c.col || P[ci%P.length], amount:item.a, comment:item.c, date:item.d});
     });
+  });
+  (m.IN||[]).forEach((item,ii)=>{
+    all.push({kind:'income', ii, amount:item.a, comment:item.c, date:item.d});
   });
   (m.EV||[]).forEach((ev,evIndex)=>{
     if(ev.type==='del_cat'){
@@ -310,12 +418,20 @@ function getAllExpenses(){
 }
 
 let ghEditing = null; // {ci, hi}
+let ghTag = 'all'; // 'all' | 'expense' | 'income' | 'other'
+
+function tagOf(kind){
+  if(kind==='expense') return 'expense';
+  if(kind==='income') return 'income';
+  return 'other'; // add_cat, del_cat, rename_cat, del_month
+}
 
 function renderGlobalHist(){
   const ghList = document.getElementById('ghList');
-  const all = getAllExpenses();
+  let all = getAllExpenses();
+  if(ghTag!=='all') all = all.filter(item=>tagOf(item.kind)===ghTag);
   if(all.length===0){
-    ghList.innerHTML = '<div class="gh-empty">Пока нет добавленных трат</div>';
+    ghList.innerHTML = '<div class="gh-empty">Пока ничего нет</div>';
     return;
   }
   ghList.innerHTML = all.map(item=>{
@@ -324,7 +440,7 @@ function renderGlobalHist(){
         <div class="gh-item">
           <div class="gh-row">
             <div class="gh-sw" style="background:var(--muted)"></div>
-            <div class="gh-cat" style="color:#7fa88f">+ категория «${(item.catName||'').replace(/</g,'&lt;')}»</div>
+            <div class="gh-cat" style="color:#6DC786">+ категория «${(item.catName||'').replace(/</g,'&lt;')}»</div>
             <div class="gh-date">${fmtDate(item.date)}</div>
           </div>
         </div>
@@ -349,7 +465,7 @@ function renderGlobalHist(){
             <div class="gh-cat" style="color:#c97b5c">удалён месяц «${(item.monthLabel||'').replace(/</g,'&lt;')}»</div>
             <div class="gh-date">${fmtDate(item.date)}</div>
           </div>
-          ${item.restored ? `<div style="font-size:11px;color:#7fa88f;margin-top:6px;padding-left:16px">✓ восстановлен</div>` : `<div style="margin-top:8px;padding-left:16px"><button class="gh-restore" data-ghrestoremonth="${item.dmIndex}">Вернуть месяц</button></div>`}
+          ${item.restored ? `<div style="font-size:11px;color:#6DC786;margin-top:6px;padding-left:16px">✓ восстановлен</div>` : `<div style="margin-top:8px;padding-left:16px"><button class="gh-restore" data-ghrestoremonth="${item.dmIndex}">Вернуть месяц</button></div>`}
         </div>
       `;
     }
@@ -366,7 +482,34 @@ function renderGlobalHist(){
             Сумма на момент удаления: <b style="color:var(--text)">${fmt(item.amount)}</b>
             ${hist.length>0?`<div style="margin-top:4px">${hist.map(h=>`<div>• +${fmt(h.a)}${h.c?` — ${h.c.replace(/</g,'&lt;')}`:''} <span style="opacity:.7">(${fmtDate(h.d)})</span></div>`).join('')}</div>`:''}
           </div>
-          ${item.restored ? `<div style="font-size:11px;color:#7fa88f;margin-top:6px;padding-left:16px">✓ восстановлена</div>` : `<div style="margin-top:8px;padding-left:16px"><button class="gh-restore" data-ghrestore="${item.evIndex}">Вернуть категорию</button></div>`}
+          ${item.restored ? `<div style="font-size:11px;color:#6DC786;margin-top:6px;padding-left:16px">✓ восстановлена</div>` : `<div style="margin-top:8px;padding-left:16px"><button class="gh-restore" data-ghrestore="${item.evIndex}">Вернуть категорию</button></div>`}
+        </div>
+      `;
+    }
+    if(item.kind==='income'){
+      const isEditingIncome = ghEditing && ghEditing.income && ghEditing.ii===item.ii;
+      return `
+        <div class="gh-item">
+          <div class="gh-row">
+            <div class="gh-sw" style="background:#DBE64C"></div>
+            <div class="gh-cat" style="color:#DBE64C">доход</div>
+            <div class="gh-date">${fmtDate(item.date)}</div>
+          </div>
+          ${isEditingIncome ? `
+            <div class="gh-editrow">
+              <input class="gh-amt-input" type="text" inputmode="decimal" value="${fmt(item.amount)}" data-ghincamt="1">
+              <input class="gh-comment-input" type="text" placeholder="комментарий" value="${(item.comment||'').replace(/"/g,'&quot;')}" data-ghinccomment="1">
+            </div>
+            <div class="gh-editrow">
+              <button class="gh-save" data-ghincsave="${item.ii}">Сохранить</button>
+              <button class="gh-del" data-ghincdel="${item.ii}">Удалить</button>
+            </div>
+          ` : `
+            <div class="gh-editrow" style="justify-content:space-between">
+              <div style="font-weight:700">+${fmt(item.amount)}${item.comment?` <span style="color:var(--muted);font-weight:400;font-style:italic">— ${item.comment.replace(/</g,'&lt;')}</span>`:''}</div>
+              <button class="gh-del" data-ghincedit="${item.ii}" style="color:var(--accent)">✎</button>
+            </div>
+          `}
         </div>
       `;
     }
@@ -380,7 +523,7 @@ function renderGlobalHist(){
         </div>
         ${isEditing ? `
           <div class="gh-editrow">
-            <input class="gh-amt-input" type="text" inputmode="decimal" value="${item.amount}" data-ghamt="1">
+            <input class="gh-amt-input" type="text" inputmode="decimal" value="${fmt(item.amount)}" data-ghamt="1">
             <input class="gh-comment-input" type="text" placeholder="комментарий" value="${(item.comment||'').replace(/"/g,'&quot;')}" data-ghcomment="1">
           </div>
           <div class="gh-editrow">
@@ -407,18 +550,43 @@ function attachGlobalHist(){
       renderGlobalHist();
     });
   });
-  document.querySelectorAll('[data-ghamt]').forEach(inp=>{
-    inp.addEventListener('input',e=>{
-      const cleaned=strip(e.target.value);
-      if(cleaned!==e.target.value) e.target.value=cleaned;
+  document.querySelectorAll('[data-ghincedit]').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      const ii = +e.target.dataset.ghincedit;
+      ghEditing = {income:true, ii};
+      renderGlobalHist();
     });
+  });
+  document.querySelectorAll('[data-ghincamt]').forEach(inp=>{
+    inp.addEventListener('focus',e=>e.target.select());
+    inp.addEventListener('input',e=>{ formatLiveInput(e.target); });
+  });
+  document.querySelectorAll('[data-ghincsave]').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      const ii = +e.target.dataset.ghincsave;
+      const amtInp = document.querySelector('[data-ghincamt]');
+      const commentInp = document.querySelector('[data-ghinccomment]');
+      editIncome(ii, numVal(amtInp.value), commentInp.value);
+      ghEditing = null;
+    });
+  });
+  document.querySelectorAll('[data-ghincdel]').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      const ii = +e.target.dataset.ghincdel;
+      deleteIncome(ii);
+      ghEditing = null;
+    });
+  });
+  document.querySelectorAll('[data-ghamt]').forEach(inp=>{
+    inp.addEventListener('focus',e=>e.target.select());
+    inp.addEventListener('input',e=>{ formatLiveInput(e.target); });
   });
   document.querySelectorAll('[data-ghsave]').forEach(btn=>{
     btn.addEventListener('click',e=>{
       const [ci,hi] = e.target.dataset.ghsave.split(':').map(Number);
       const amtInp = document.querySelector('[data-ghamt]');
       const commentInp = document.querySelector('[data-ghcomment]');
-      editExpense(ci, hi, parseFloat(amtInp.value)||0, commentInp.value);
+      editExpense(ci, hi, numVal(amtInp.value), commentInp.value);
       ghEditing = null;
     });
   });
@@ -479,6 +647,18 @@ function attachGlobalHist(){
 
 function attach(){
   const C = cur().C;
+  document.querySelectorAll('[data-move]').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      const i=+btn.dataset.i;
+      const dir=btn.dataset.move;
+      const j = dir==='up' ? i-1 : i+1;
+      if(j<0 || j>=C.length) return;
+      const tmp=C[i]; C[i]=C[j]; C[j]=tmp;
+      renderRows();
+      renderChart();
+      sched();
+    });
+  });
   document.querySelectorAll('[data-f]').forEach(inp=>{
     inp.addEventListener('focus',e=>{
       e.target.select();
@@ -526,7 +706,7 @@ function attach(){
         inp.focus();
         return;
       }
-      const val = parseFloat(inp.value)||0;
+      const val = numVal(inp.value);
       if(val<=0){
         inp.focus();
         return;
@@ -539,15 +719,12 @@ function attach(){
     });
   });
   document.querySelectorAll('[data-plus]').forEach(inp=>{
-    inp.addEventListener('input',e=>{
-      const cleaned=strip(e.target.value);
-      if(cleaned!==e.target.value) e.target.value=cleaned;
-    });
+    inp.addEventListener('input',e=>{ formatLiveInput(e.target); });
     inp.addEventListener('keydown',e=>{
       if(e.key==='Enter'||e.key==='Go'||e.key==='Done'){
         e.preventDefault();
         const i=+e.target.dataset.i;
-        const val = parseFloat(e.target.value)||0;
+        const val = numVal(e.target.value);
         if(val<=0) return;
         const commentInp=document.querySelector(`[data-comment][data-i="${i}"]`);
         addExpense(i, val, commentInp?commentInp.value:'');
@@ -577,21 +754,36 @@ function attach(){
 
 document.getElementById('addRow').addEventListener('click',()=>{
   const m = cur();
-  m.C.push({n:"Новая категория",a:0,h:[]});
+  m.C.push({n:"Новая категория",a:0,h:[],col:nextColor(m.C)});
   if(!m.EV) m.EV=[];
   m.EV.push({type:'add_cat', name:"Новая категория", date:new Date().toISOString()});
   renderRows();renderChart();sched();
   if(document.getElementById('ghOverlay').classList.contains('open')) renderGlobalHist();
 });
 
-bi.addEventListener('focus',e=>{ e.target.value=String(cur().B); e.target.select(); });
-bi.addEventListener('input',e=>{
-  const cl=strip(e.target.value);
-  if(cl!==e.target.value)e.target.value=cl;
-  cur().B=parseFloat(cl)||0;
-  renderChart();sched();
+// budget field is read-only: budget only changes via "+ Доход" or history editing
+
+const incomeForm = document.getElementById('incomeForm');
+const incomeAmt = document.getElementById('incomeAmt');
+const incomeBtn = document.getElementById('incomeBtn');
+const incomeComment = document.getElementById('incomeComment');
+incomeForm.addEventListener('submit',e=>{ e.preventDefault(); });
+incomeAmt.addEventListener('input',e=>{ formatLiveInput(e.target); });
+incomeBtn.addEventListener('click',()=>{
+  if(!incomeAmt.classList.contains('show')){
+    incomeAmt.classList.add('show');
+    incomeComment.classList.add('show');
+    incomeAmt.focus();
+    return;
+  }
+  const val = numVal(incomeAmt.value);
+  if(val<=0){ incomeAmt.focus(); return; }
+  addIncome(val, incomeComment.value);
+  incomeAmt.value='';
+  incomeComment.value='';
+  incomeAmt.classList.remove('show');
+  incomeComment.classList.remove('show');
 });
-bi.addEventListener('blur',()=>{bi.value=fmt(cur().B)});
 
 monthSelect.addEventListener('change',e=>{ switchMonth(e.target.value); });
 
@@ -607,8 +799,8 @@ document.getElementById('newMonthBtn').addEventListener('click',()=>{
     return;
   }
   const prev = STORE.months[lastKey];
-  const newCategories = prev.C.map(c=>({n:c.n, a:0, h:[]}));
-  STORE.months[newKey] = { B: 100000, C: newCategories, EV: [] };
+  const newCategories = prev.C.map(c=>({n:c.n, a:0, h:[], col:c.col || nextColor([])}));
+  STORE.months[newKey] = { B: 0, C: newCategories, EV: [], IN: [] };
   STORE.current = newKey;
   renderMonthSelect();
   bi.value = fmt(cur().B);
@@ -649,6 +841,14 @@ document.getElementById('ghClose').addEventListener('click',()=>{
 });
 document.getElementById('ghOverlay').addEventListener('click',e=>{
   if(e.target.id==='ghOverlay') document.getElementById('ghOverlay').classList.remove('open');
+});
+document.querySelectorAll('[data-ghtag]').forEach(btn=>{
+  btn.addEventListener('click',e=>{
+    ghTag = e.target.dataset.ghtag;
+    document.querySelectorAll('[data-ghtag]').forEach(b=>b.classList.toggle('active', b===e.target));
+    ghEditing = null;
+    renderGlobalHist();
+  });
 });
 
 const THEME_KEY = "icity-budget-theme";
