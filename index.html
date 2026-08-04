@@ -380,9 +380,6 @@ function renderRows(){
           <button class="hist-icon-btn" type="button" data-i="${i}" data-limitbtn="1" aria-label="Лимит категории" title="Установить лимит">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>
           </button>
-          <button class="hist-icon-btn" type="button" data-i="${i}" data-recurbtn="1" aria-label="Повторяющийся платёж" title="Повторяющийся платёж"${c.recurring>0?' style="border-color:#6DC786;color:#6DC786"':''}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-          </button>
           <button class="hist-icon-btn" type="button" data-i="${i}" data-histbtn="1" aria-label="История категории" title="История категории">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l4 2"/></svg>
             ${histCount>0?`<span class="hist-icon-badge">${histCount}</span>`:''}
@@ -970,19 +967,6 @@ function attach(){
       renderRows(); renderChart(); sched();
     });
   });
-  document.querySelectorAll('[data-recurbtn]').forEach(btn=>{
-    btn.addEventListener('click',e=>{
-      const i=+btn.dataset.i;
-      const m = cur();
-      const c = m.C[i];
-      const current = c.recurring>0 ? String(c.recurring) : '';
-      const val = prompt(`Повторяющаяся сумма для «${c.n}», будет автоматически добавляться в начале каждого нового месяца (пусто или 0 — отключить):`, current);
-      if(val===null) return;
-      const num = numVal(val);
-      if(num>0){ c.recurring = num; } else { delete c.recurring; }
-      renderRows(); sched();
-    });
-  });
   document.querySelectorAll('[data-commenttoggle]').forEach(el=>{
     el.addEventListener('click',e=>{
       e.target.classList.toggle('expanded');
@@ -1215,11 +1199,6 @@ document.getElementById('newMonthBtn').addEventListener('click',()=>{
   const newCategories = prev.C.map(c=>{
     const nc = {n:c.n, a:0, h:[], col:c.col || nextColor([])};
     if(c.limit>0) nc.limit = c.limit;
-    if(c.recurring>0){
-      nc.recurring = c.recurring;
-      nc.a = c.recurring;
-      nc.h = [{a:c.recurring, d:new Date().toISOString(), c:'повторяющийся платёж'}];
-    }
     return nc;
   });
   STORE.months[newKey] = { B: 0, C: newCategories, hiddenC: [], EV: [], IN: [] };
