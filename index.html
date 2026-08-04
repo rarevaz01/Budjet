@@ -11,6 +11,7 @@ h1{font-weight:800;font-size:26px;margin:0}
 .month-row{display:flex;align-items:center;gap:8px;margin-bottom:18px;flex-wrap:wrap}
 .month-select{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:10px;color:var(--text);font-weight:700;font-size:14px;padding:9px 10px;flex:1;min-width:0}
 .month-add{background:#FFD400;color:#1A1400;border:none;border-radius:10px;padding:9px 12px;font-weight:700;font-size:13px;flex-shrink:0;white-space:nowrap}
+.month-icon-add{background:#FFD400;color:#1A1400;border:none;border-radius:10px;width:38px;height:38px;font-size:20px;font-weight:800;flex-shrink:0;display:flex;align-items:center;justify-content:center}
 .month-del{background:none;border:1px solid var(--line);color:var(--muted);border-radius:10px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 #status{font-size:11px;color:var(--muted)}
 #status.err{color:#e57373}
@@ -108,8 +109,8 @@ svg{overflow:visible}
 </div>
 <div class="month-row">
   <select class="month-select" id="monthSelect"></select>
-  <button class="month-add" id="newMonthBtn">Новый месяц</button>
-  <button class="month-add" id="newCustomMonthBtn" title="Создать период со своим названием">Своё название</button>
+  <button class="month-icon-add" id="newMonthBtn" title="Новый месяц" aria-label="Новый месяц">+</button>
+  <button class="month-add" id="editMonthNameBtn" title="Изменить название периода">Изменить</button>
   <button class="month-del" id="delMonthBtn" title="Удалить месяц" aria-label="Удалить месяц">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
   </button>
@@ -893,23 +894,29 @@ document.getElementById('newMonthBtn').addEventListener('click',()=>{
   save();
 });
 
-document.getElementById('newCustomMonthBtn').addEventListener('click',()=>{
-  const name = prompt('Название периода (например «Отпуск», «Проект X»):');
-  if(!name || !name.trim()) return;
+document.getElementById('editMonthNameBtn').addEventListener('click',()=>{
+  const currentLabel = monthLabel(STORE.current);
+  const name = prompt('Название периода:', currentLabel);
+  if(name===null) return;
   const trimmed = name.trim();
-  const key = 'c'+Date.now();
-  const sourceKey = STORE.order.length ? STORE.order[STORE.order.length-1] : STORE.current;
-  const prev = STORE.months[sourceKey] || cur();
-  const newCategories = prev.C.map(c=>({n:c.n, a:0, h:[], col:c.col || nextColor([])}));
-  STORE.months[key] = { B: 0, C: newCategories, EV: [], IN: [], customName: trimmed };
-  STORE.order.push(key);
-  STORE.current = key;
+  const m = cur();
+  if(!trimmed || trimmed===defaultCalendarLabel(STORE.current)){
+    delete m.customName;
+  } else {
+    m.customName = trimmed;
+  }
   renderMonthSelect();
-  bi.value = fmt(cur().B);
-  renderRows();
-  renderChart();
   save();
 });
+
+function defaultCalendarLabel(key){
+  const parts = key.split('-');
+  if(parts.length===2 && /^\d+$/.test(parts[0]) && /^\d+$/.test(parts[1])){
+    const y = +parts[0], m = +parts[1];
+    return MONTH_NAMES[m-1]+' '+y;
+  }
+  return '';
+}
 
 document.getElementById('delMonthBtn').addEventListener('click',()=>{
   const keys = Object.keys(STORE.months);
