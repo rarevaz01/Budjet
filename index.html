@@ -62,6 +62,12 @@ svg{overflow:visible}
 .comment-row{display:flex;align-items:center;gap:6px}
 .hist-icon-btn{background:none;border:1px solid var(--line);color:var(--muted);border-radius:8px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative}
 .hist-icon-badge{position:absolute;top:-4px;right:-4px;background:var(--accent);color:#1A1400;font-size:9px;font-weight:800;min-width:14px;height:14px;border-radius:7px;display:flex;align-items:center;justify-content:center;padding:0 3px}
+.amt-display.over-limit{color:#E05A4E}
+.limit-bar-wrap{height:5px;background:var(--line);border-radius:3px;overflow:hidden;margin-top:4px}
+.limit-bar{height:100%;background:#6DC786;border-radius:3px;transition:width .2s}
+.limit-bar.over{background:#E05A4E}
+.limit-text{font-size:10px;color:var(--muted);margin-top:3px}
+.limit-text.over{color:#E05A4E;font-weight:700}
 .hist-toggle{background:none;border:none;color:var(--muted);font-size:10px;text-decoration:underline;padding:2px 4px;flex-shrink:0}
 .hist{margin-top:6px;padding-left:18px;display:none}
 .hist.open{display:block}
@@ -119,6 +125,13 @@ svg{overflow:visible}
   <h1>Бюджет</h1>
   <div class="head-icons">
     <span id="status"></span>
+    <button class="icon-btn" id="backupExportBtn" title="Резервная копия" aria-label="Экспорт всех данных">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+    </button>
+    <button class="icon-btn" id="backupImportBtn" title="Восстановить из копии" aria-label="Импорт данных">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
+    </button>
+    <input type="file" id="backupFileInput" accept="application/json" style="display:none">
     <button class="icon-btn" id="openGlobalHist" title="История" aria-label="История">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l4 2"/></svg>
     </button>
@@ -345,7 +358,7 @@ function renderRows(){
         </div>
         <div class="sw" style="background:${c.col || P[i%P.length]}"></div>
         <input class="ninp" value="${(c.n||'').replace(/"/g,'&quot;')}" data-i="${i}" data-f="n">
-        <div class="amt-display" id="amt-${i}">${fmt(c.a)}</div>
+        <div class="amt-display${(c.limit>0 && c.a>c.limit)?' over-limit':''}" id="amt-${i}">${fmt(c.a)}</div>
         <div class="pct">${pct.toFixed(1)}%</div>
         <button class="del" data-i="${i}">×</button>
       </div>
@@ -356,8 +369,20 @@ function renderRows(){
           <button class="plus-btn" type="button" data-plusbtn="${i}">+</button>
         </form>
         <div class="pct-preview" id="pctPreview-${i}"></div>
+        ${c.limit>0 ? `
+        <div class="limit-bar-wrap">
+          <div class="limit-bar${c.a>c.limit?' over':''}" style="width:${Math.min(100,(c.a/c.limit*100))}%"></div>
+        </div>
+        <div class="limit-text${c.a>c.limit?' over':''}">лимит ${fmt(c.limit)}${c.a>c.limit?` · превышение на ${fmt(c.a-c.limit)}`:''}</div>
+        ` : ''}
         <div class="comment-row">
           <input class="comment-input" type="text" placeholder="комментарий" data-i="${i}" data-comment="1">
+          <button class="hist-icon-btn" type="button" data-i="${i}" data-limitbtn="1" aria-label="Лимит категории" title="Установить лимит">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>
+          </button>
+          <button class="hist-icon-btn" type="button" data-i="${i}" data-recurbtn="1" aria-label="Повторяющийся платёж" title="Повторяющийся платёж"${c.recurring>0?' style="border-color:#6DC786;color:#6DC786"':''}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          </button>
           <button class="hist-icon-btn" type="button" data-i="${i}" data-histbtn="1" aria-label="История категории" title="История категории">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l4 2"/></svg>
             ${histCount>0?`<span class="hist-icon-badge">${histCount}</span>`:''}
@@ -932,6 +957,32 @@ function attach(){
       document.getElementById('hist-'+i).classList.toggle('open');
     });
   });
+  document.querySelectorAll('[data-limitbtn]').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      const i=+btn.dataset.i;
+      const m = cur();
+      const c = m.C[i];
+      const current = c.limit>0 ? String(c.limit) : '';
+      const val = prompt(`Лимит для категории «${c.n}» (пусто или 0 — убрать лимит):`, current);
+      if(val===null) return;
+      const num = numVal(val);
+      if(num>0){ c.limit = num; } else { delete c.limit; }
+      renderRows(); renderChart(); sched();
+    });
+  });
+  document.querySelectorAll('[data-recurbtn]').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      const i=+btn.dataset.i;
+      const m = cur();
+      const c = m.C[i];
+      const current = c.recurring>0 ? String(c.recurring) : '';
+      const val = prompt(`Повторяющаяся сумма для «${c.n}», будет автоматически добавляться в начале каждого нового месяца (пусто или 0 — отключить):`, current);
+      if(val===null) return;
+      const num = numVal(val);
+      if(num>0){ c.recurring = num; } else { delete c.recurring; }
+      renderRows(); sched();
+    });
+  });
   document.querySelectorAll('[data-commenttoggle]').forEach(el=>{
     el.addEventListener('click',e=>{
       e.target.classList.toggle('expanded');
@@ -1161,7 +1212,16 @@ document.getElementById('newMonthBtn').addEventListener('click',()=>{
   }
   const sourceKey = STORE.order.length ? STORE.order[STORE.order.length-1] : lastKey;
   const prev = STORE.months[sourceKey] || STORE.months[lastKey];
-  const newCategories = prev.C.map(c=>({n:c.n, a:0, h:[], col:c.col || nextColor([])}));
+  const newCategories = prev.C.map(c=>{
+    const nc = {n:c.n, a:0, h:[], col:c.col || nextColor([])};
+    if(c.limit>0) nc.limit = c.limit;
+    if(c.recurring>0){
+      nc.recurring = c.recurring;
+      nc.a = c.recurring;
+      nc.h = [{a:c.recurring, d:new Date().toISOString(), c:'повторяющийся платёж'}];
+    }
+    return nc;
+  });
   STORE.months[newKey] = { B: 0, C: newCategories, hiddenC: [], EV: [], IN: [] };
   STORE.order.push(newKey);
   STORE.current = newKey;
@@ -1255,6 +1315,70 @@ document.getElementById('ghExport').addEventListener('click',()=>{
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 });
+
+document.getElementById('backupExportBtn').addEventListener('click',()=>{
+  const json = JSON.stringify(STORE, null, 2);
+  const blob = new Blob([json], {type:'application/json;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const dateStr = new Date().toISOString().slice(0,10);
+  a.download = `budget-backup-${dateStr}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+document.getElementById('backupImportBtn').addEventListener('click',()=>{
+  document.getElementById('backupFileInput').click();
+});
+document.getElementById('backupFileInput').addEventListener('change',e=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const parsed = JSON.parse(reader.result);
+      if(!parsed || typeof parsed.months !== 'object'){
+        alert('Файл не похож на резервную копию бюджета.');
+        return;
+      }
+      if(!confirm('Заменить все текущие данные содержимым этого файла? Текущие данные будут потеряны, если вы их не сохранили отдельно.')) return;
+      STORE = {
+        months: parsed.months || {},
+        current: parsed.current || null,
+        deletedMonths: Array.isArray(parsed.deletedMonths) ? parsed.deletedMonths : [],
+        order: Array.isArray(parsed.order) ? parsed.order : Object.keys(parsed.months||{}).sort(),
+        dismissedPresets: Array.isArray(parsed.dismissedPresets) ? parsed.dismissedPresets : []
+      };
+      const keys = Object.keys(STORE.months);
+      if(keys.length===0){
+        STORE.months[monthKey(new Date())] = defaultMonthData();
+        STORE.order = [monthKey(new Date())];
+      }
+      if(!STORE.current || !STORE.months[STORE.current]){
+        STORE.current = STORE.order[STORE.order.length-1] || Object.keys(STORE.months)[0];
+      }
+      Object.values(STORE.months).forEach(month=>{
+        (month.C||[]).forEach((c,i)=>{ if(!c.col) c.col = nextColor((month.C||[]).slice(0,i)); });
+        if(!Array.isArray(month.hiddenC)) month.hiddenC = [];
+        if(!Array.isArray(month.IN)) month.IN = [];
+        if(!Array.isArray(month.EV)) month.EV = [];
+      });
+      renderMonthSelect();
+      bi.value = fmt(cur().B);
+      renderRows();
+      renderChart();
+      save();
+      alert('Данные восстановлены.');
+    }catch(err){
+      alert('Не удалось прочитать файл: '+err.message);
+    }
+    e.target.value = '';
+  };
+  reader.readAsText(file);
+});
+
 document.getElementById('ghClose').addEventListener('click',()=>{
   document.getElementById('ghOverlay').classList.remove('open');
 });
