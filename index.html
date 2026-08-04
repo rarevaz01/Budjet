@@ -14,13 +14,15 @@ h1{font-weight:800;font-size:26px;margin:0}
 .month-del{background:none;border:1px solid var(--line);color:var(--muted);border-radius:10px;padding:9px 12px;font-size:15px;flex-shrink:0}
 #status{font-size:11px;color:var(--muted)}
 #status.err{color:#e57373}
-.chart-col{display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:18px}
+.chart-col{display:flex;align-items:center;gap:20px;margin-bottom:18px}
+.chart-svg-wrap{flex-shrink:0}
+.chart-side{display:flex;flex-direction:column;gap:14px;flex:1;min-width:0}
+.side-block{display:flex;flex-direction:column;gap:4px}
+.side-label{font-size:12px;color:var(--muted)}
+.side-value{font-size:20px;font-weight:800;color:var(--text);padding:6px 10px}
+.side-value.neg{color:#e57373}
 svg{overflow:visible}
-.tot{display:flex;gap:20px;font-size:12px;color:var(--muted);text-align:center}
-.tot b{color:var(--text);font-size:15px;display:block;margin-top:2px}
-.tot b.neg{color:#e57373}
-.bwrap{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px}
-.binp{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:8px;color:var(--text);font-weight:700;font-size:14px;padding:6px 10px;width:100px}
+.binp{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:8px;color:var(--text);font-weight:800;font-size:20px;padding:6px 10px;width:100%;max-width:150px}
 .row{padding:10px 0;border-bottom:1px solid var(--line)}
 .row-top{display:grid;grid-template-columns:12px minmax(0,1fr) 82px 44px 22px;align-items:center;gap:6px}
 .sw{width:10px;height:10px;border-radius:3px}
@@ -28,7 +30,7 @@ svg{overflow:visible}
 .amt-display{font-weight:700;font-size:13px;text-align:right;font-variant-numeric:tabular-nums}
 .pct{font-size:10px;color:var(--muted);text-align:right}
 .del{background:none;border:none;color:var(--muted);font-size:15px;width:22px;height:22px;border-radius:6px}
-.row-bottom{display:flex;flex-direction:column;gap:6px;margin-top:6px;padding-left:18px}
+.row-bottom{display:flex;flex-direction:column;gap:6px;margin-top:6px}
 .plus-input{background:rgba(127,168,143,.12);border:1px solid #7fa88f;border-radius:10px;color:var(--text);font-size:13px;padding:9px 10px;width:0;min-width:0;height:40px;text-align:center;display:none;flex:1}
 .plus-input.show{display:block}
 .plus-input::placeholder{color:#a8c9b4}
@@ -49,8 +51,8 @@ svg{overflow:visible}
 .hist-del{background:none;border:none;color:var(--muted);font-size:13px;width:20px;height:20px;border-radius:5px;margin-left:auto;flex-shrink:0}
 .add{margin-top:12px;background:none;border:1px dashed var(--line);color:var(--muted);font-weight:600;font-size:12px;padding:9px 12px;border-radius:12px;width:100%;text-align:left}
 .bottom-row{display:flex;gap:8px;margin-top:10px}
-.globalhist-btn{background:none;border:1px solid var(--line);color:var(--text);font-weight:600;font-size:13px;padding:11px 12px;border-radius:12px;flex:1;text-align:center}
-.theme-btn{background:none;border:1px solid var(--line);color:var(--text);font-weight:600;font-size:18px;width:44px;height:auto;border-radius:12px;flex-shrink:0}
+.head-icons{display:flex;align-items:center;gap:8px}
+.icon-btn{background:none;border:1px solid var(--line);color:var(--text);border-radius:10px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:flex-end;justify-content:center;z-index:100}
 .overlay.open{display:flex}
 .sheet{background:var(--card);width:100%;max-width:560px;max-height:85vh;border-radius:20px 20px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));overflow-y:auto}
@@ -70,23 +72,36 @@ svg{overflow:visible}
 .gh-del{background:none;border:none;color:var(--muted);font-size:14px;width:26px;height:26px;border-radius:6px;flex-shrink:0}
 .gh-restore{background:none;border:1px solid #7fa88f;color:#7fa88f;font-weight:700;font-size:12px;padding:7px 12px;border-radius:8px}
 </style></head><body><div class="card">
-<div class="head"><h1>Бюджет</h1><span id="status"></span></div>
+<div class="head">
+  <h1>Бюджет</h1>
+  <div class="head-icons">
+    <span id="status"></span>
+    <button class="icon-btn" id="openGlobalHist" title="История" aria-label="История">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l4 2"/></svg>
+    </button>
+    <button class="icon-btn" id="themeToggle" title="Тема" aria-label="Переключить тему">☀︎</button>
+  </div>
+</div>
 <div class="month-row">
   <select class="month-select" id="monthSelect"></select>
   <button class="month-add" id="newMonthBtn">+ Новый месяц</button>
   <button class="month-del" id="delMonthBtn">🗑</button>
 </div>
 <div class="chart-col">
-<svg id="donut" width="220" height="220" viewBox="0 0 300 300"></svg>
-<div class="tot"><div>Бюджет<b id="bd">-</b></div><div>Остаток<b id="ld">-</b></div></div>
-<div class="bwrap">Бюджет<input class="binp" id="bi" type="text" inputmode="decimal" value="300000"></div>
+  <div class="chart-svg-wrap"><svg id="donut" width="180" height="180" viewBox="0 0 300 300"></svg></div>
+  <div class="chart-side">
+    <div class="side-block">
+      <span class="side-label">Бюджет</span>
+      <input class="binp" id="bi" type="text" inputmode="decimal" value="100000">
+    </div>
+    <div class="side-block">
+      <span class="side-label">Остаток</span>
+      <span class="side-value" id="ld">-</span>
+    </div>
+  </div>
 </div>
 <div id="rows"></div>
 <button class="add" id="addRow">+ Добавить категорию</button>
-<div class="bottom-row">
-  <button class="globalhist-btn" id="openGlobalHist">История всех трат</button>
-  <button class="theme-btn" id="themeToggle">☀︎</button>
-</div>
 </div>
 <div class="overlay" id="ghOverlay">
   <div class="sheet">
@@ -106,19 +121,20 @@ function monthLabel(key){
 }
 function defaultMonthData(){
   return {
-    B:300000,
+    B:100000,
     C:[{n:"Аренда",a:56000,h:[]},{n:"Транспорт",a:7000,h:[]},{n:"Одежда",a:15000,h:[]},{n:"Развлечения",a:8000,h:[]},{n:"Путешествия",a:20000,h:[]},{n:"Дети",a:30000,h:[]}],
     EV:[]
   };
 }
 
-let STORE = { months:{}, current:null };
+let STORE = { months:{}, current:null, deletedMonths:[] };
 try{
   const r=localStorage.getItem(K);
   if(r){
     const p=JSON.parse(r);
     if(p && typeof p.months==='object') STORE.months=p.months;
     if(p && p.current) STORE.current=p.current;
+    if(p && Array.isArray(p.deletedMonths)) STORE.deletedMonths=p.deletedMonths;
   }
 }catch(e){}
 
@@ -168,7 +184,7 @@ function renderMonthSelect(){
 function switchMonth(key){
   if(!STORE.months[key]) return;
   STORE.current = key;
-  bi.value = String(cur().B);
+  bi.value = fmt(cur().B);
   renderRows();
   renderChart();
   save();
@@ -213,7 +229,6 @@ function renderRows(){
 function renderChart(){
   const m = cur();
   const total=m.C.reduce((s,c)=>s+(parseFloat(c.a)||0),0),left=m.B-total;
-  document.getElementById('bd').textContent=fmt(m.B);
   const ld=document.getElementById('ld');ld.textContent=fmt(left);ld.classList.toggle('neg',left<0);
   svg.innerHTML='';
   const cx=150,cy=150,r=130,ri=78,ns="http://www.w3.org/2000/svg",ct=Math.max(m.B,total);
@@ -287,6 +302,9 @@ function getAllExpenses(){
       all.push({kind:'rename_cat', oldName:ev.oldName, newName:ev.newName, date:ev.date});
     }
   });
+  (STORE.deletedMonths||[]).forEach((dm,dmIndex)=>{
+    all.push({kind:'del_month', dmIndex, monthLabel:dm.label, date:dm.date, restored:!!dm.restored});
+  });
   all.sort((a,b)=> new Date(b.date) - new Date(a.date));
   return all;
 }
@@ -320,6 +338,18 @@ function renderGlobalHist(){
             <div class="gh-cat" style="color:#e8c96b">переименована «${(item.oldName||'').replace(/</g,'&lt;')}» → «${(item.newName||'').replace(/</g,'&lt;')}»</div>
             <div class="gh-date">${fmtDate(item.date)}</div>
           </div>
+        </div>
+      `;
+    }
+    if(item.kind==='del_month'){
+      return `
+        <div class="gh-item">
+          <div class="gh-row">
+            <div class="gh-sw" style="background:var(--muted)"></div>
+            <div class="gh-cat" style="color:#c97b5c">удалён месяц «${(item.monthLabel||'').replace(/</g,'&lt;')}»</div>
+            <div class="gh-date">${fmtDate(item.date)}</div>
+          </div>
+          ${item.restored ? `<div style="font-size:11px;color:#7fa88f;margin-top:6px;padding-left:16px">✓ восстановлен</div>` : `<div style="margin-top:8px;padding-left:16px"><button class="gh-restore" data-ghrestoremonth="${item.dmIndex}">Вернуть месяц</button></div>`}
         </div>
       `;
     }
@@ -418,6 +448,27 @@ function attachGlobalHist(){
       if(!confirm(`Вернуть категорию «${ev.name}» с суммой ${fmt(ev.amount)} и историей трат?`)) return;
       m.C.push({n: ev.name, a: ev.amount, h: ev.h || []});
       ev.restored = true;
+      renderRows();
+      renderChart();
+      renderGlobalHist();
+      save();
+    });
+  });
+  document.querySelectorAll('[data-ghrestoremonth]').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      const dmIndex = +e.target.dataset.ghrestoremonth;
+      const dm = STORE.deletedMonths[dmIndex];
+      if(!dm || dm.restored) return;
+      if(!confirm(`Вернуть месяц «${dm.label}» со всеми категориями и историей?`)) return;
+      if(STORE.months[dm.key]){
+        alert('Месяц с таким периодом уже существует — восстановление невозможно, так как это создаст конфликт.');
+        return;
+      }
+      STORE.months[dm.key] = dm.data;
+      dm.restored = true;
+      STORE.current = dm.key;
+      renderMonthSelect();
+      bi.value = fmt(cur().B);
       renderRows();
       renderChart();
       renderGlobalHist();
@@ -533,14 +584,14 @@ document.getElementById('addRow').addEventListener('click',()=>{
   if(document.getElementById('ghOverlay').classList.contains('open')) renderGlobalHist();
 });
 
-bi.addEventListener('focus',e=>e.target.select());
+bi.addEventListener('focus',e=>{ e.target.value=String(cur().B); e.target.select(); });
 bi.addEventListener('input',e=>{
   const cl=strip(e.target.value);
   if(cl!==e.target.value)e.target.value=cl;
   cur().B=parseFloat(cl)||0;
   renderChart();sched();
 });
-bi.addEventListener('blur',()=>{bi.value=String(cur().B)});
+bi.addEventListener('blur',()=>{bi.value=fmt(cur().B)});
 
 monthSelect.addEventListener('change',e=>{ switchMonth(e.target.value); });
 
@@ -557,10 +608,10 @@ document.getElementById('newMonthBtn').addEventListener('click',()=>{
   }
   const prev = STORE.months[lastKey];
   const newCategories = prev.C.map(c=>({n:c.n, a:0, h:[]}));
-  STORE.months[newKey] = { B: prev.B, C: newCategories, EV: [] };
+  STORE.months[newKey] = { B: 100000, C: newCategories, EV: [] };
   STORE.current = newKey;
   renderMonthSelect();
-  bi.value = String(cur().B);
+  bi.value = fmt(cur().B);
   renderRows();
   renderChart();
   save();
@@ -573,14 +624,18 @@ document.getElementById('delMonthBtn').addEventListener('click',()=>{
     return;
   }
   const label = monthLabel(STORE.current);
-  if(!confirm(`Удалить «${label}» полностью? Все категории, суммы и история этого месяца будут потеряны безвозвратно.`)) return;
-  delete STORE.months[STORE.current];
+  if(!confirm(`Удалить «${label}» полностью? Категории и суммы этого месяца скроются, но их можно будет восстановить из истории.`)) return;
+  const key = STORE.current;
+  const data = STORE.months[key];
+  STORE.deletedMonths.push({ key, label, data, date: new Date().toISOString(), restored:false });
+  delete STORE.months[key];
   const remaining = Object.keys(STORE.months).sort();
   STORE.current = remaining[remaining.length-1];
   renderMonthSelect();
-  bi.value = String(cur().B);
+  bi.value = fmt(cur().B);
   renderRows();
   renderChart();
+  if(document.getElementById('ghOverlay').classList.contains('open')) renderGlobalHist();
   save();
 });
 
@@ -612,7 +667,7 @@ let savedTheme = 'dark';
 try{ savedTheme = localStorage.getItem(THEME_KEY) || 'dark'; }catch(e){}
 
 renderMonthSelect();
-bi.value = String(cur().B);
+bi.value = fmt(cur().B);
 renderRows();
 renderChart();
 applyTheme(savedTheme);
