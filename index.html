@@ -112,6 +112,8 @@ svg{overflow:visible}
 .cat-add-row{display:flex;gap:8px;margin-top:14px}
 .cat-add-input{flex:1;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:10px;color:var(--text);font-size:13px;padding:10px}
 .cat-add-btn{background:#FFD400;color:#1A1400;border:none;border-radius:10px;padding:10px 16px;font-weight:700;font-size:13px;white-space:nowrap}
+.cat-restore-btn{background:none;border:none;color:var(--muted);font-size:12px;text-decoration:underline;padding:12px 0 0;width:100%;text-align:center}
+.cat-restore-btn:disabled{opacity:.4;text-decoration:none}
 </style></head><body><div class="card">
 <div class="head">
   <h1>Бюджет</h1>
@@ -185,6 +187,7 @@ svg{overflow:visible}
       <input class="cat-add-input" id="catAddInput" type="text" placeholder="своя категория">
       <button class="cat-add-btn" id="catAddBtn">Добавить</button>
     </div>
+    <button class="cat-restore-btn" id="catRestorePresetsBtn">Восстановить убранные категории</button>
   </div>
 </div>
 <script>
@@ -196,7 +199,7 @@ function nextColor(existingCategories){
 }
 const K="icity-budget-v2";
 const MONTH_NAMES=["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
-const PRESET_CATEGORIES=["Аренда","Транспорт","Одежда","Развлечения","Путешествия","Дети","Продукты","Здоровье","Образование","Подарки","Красота","Спорт","Подписки","Кафе и рестораны","Питомцы","Ремонт","Связь","Прочее"];
+const PRESET_CATEGORIES=["Спорт","Красота и уход","Образование","Подарки","Ребёнок","Животные","Другое"];
 
 function monthKey(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
 function monthLabel(key){
@@ -212,14 +215,25 @@ function monthLabel(key){
 function defaultMonthData(){
   return {
     B:0,
-    C:[{n:"Аренда",a:0,h:[],col:P[0]},{n:"Транспорт",a:0,h:[],col:P[1]},{n:"Продукты",a:0,h:[],col:P[2]},{n:"Развлечения",a:0,h:[],col:P[3]}],
+    C:[
+      {n:"Дом",a:0,h:[],col:P[0]},
+      {n:"Продукты и хозтовары",a:0,h:[],col:P[1]},
+      {n:"Транспорт",a:0,h:[],col:P[2]},
+      {n:"Связь и подписки",a:0,h:[],col:P[3]},
+      {n:"Одежда",a:0,h:[],col:P[4]},
+      {n:"Развлечения",a:0,h:[],col:P[5]},
+      {n:"Еда вне дома",a:0,h:[],col:P[6]},
+      {n:"Путешествия",a:0,h:[],col:P[7]},
+      {n:"Здоровье",a:0,h:[],col:P[8]},
+      {n:"Кредиты",a:0,h:[],col:P[9]}
+    ],
     hiddenC:[],
     EV:[],
     IN:[]
   };
 }
 
-let STORE = { months:{}, current:null, deletedMonths:[], order:[] };
+let STORE = { months:{}, current:null, deletedMonths:[], order:[], dismissedPresets:[] };
 try{
   const r=localStorage.getItem(K);
   if(r){
@@ -228,6 +242,7 @@ try{
     if(p && p.current) STORE.current=p.current;
     if(p && Array.isArray(p.deletedMonths)) STORE.deletedMonths=p.deletedMonths;
     if(p && Array.isArray(p.order)) STORE.order=p.order;
+    if(p && Array.isArray(p.dismissedPresets)) STORE.dismissedPresets=p.dismissedPresets;
   }
 }catch(e){}
 
@@ -992,14 +1007,25 @@ function renderCatEditor(){
   PRESET_CATEGORIES.forEach(name=>{
     const key = name.trim().toLowerCase();
     if(activeNames.has(key) || hiddenNames.has(key)) return;
+    if((STORE.dismissedPresets||[]).includes(key)) return;
     html += `
-      <div class="cat-edit-item">
-        <div class="cat-edit-sw" style="background:var(--line)"></div>
-        <div class="cat-edit-name dim">${name}</div>
-        <button class="cat-edit-toggle" data-catadd="${name.replace(/"/g,'&quot;')}"></button>
+      <div class="cat-swipe-wrap">
+        <button class="cat-swipe-delete" data-catdismiss="${name.replace(/"/g,'&quot;')}">Убрать</button>
+        <div class="cat-swipe-content" data-swipeitem="1">
+          <div class="cat-edit-item" style="border-bottom:none">
+            <div class="cat-edit-sw" style="background:var(--line)"></div>
+            <div class="cat-edit-name dim">${name}</div>
+            <button class="cat-edit-toggle" data-catadd="${name.replace(/"/g,'&quot;')}"></button>
+          </div>
+        </div>
       </div>`;
   });
   list.innerHTML = html || '<div class="gh-empty">Нет доступных категорий</div>';
+
+  const restoreBtn = document.getElementById('catRestorePresetsBtn');
+  const dismissedCount = (STORE.dismissedPresets||[]).length;
+  restoreBtn.disabled = dismissedCount===0;
+  restoreBtn.textContent = dismissedCount>0 ? `Восстановить убранные категории (${dismissedCount})` : 'Нет убранных категорий';
 
   list.querySelectorAll('[data-cathide]').forEach(btn=>{
     btn.addEventListener('click',()=>{
@@ -1028,6 +1054,15 @@ function renderCatEditor(){
       if(!cat) return;
       if(!confirm(`Удалить категорию «${cat.n}» насовсем? Это действие нельзя отменить.`)) return;
       m2.hiddenC.splice(i,1);
+      renderCatEditor(); save();
+    });
+  });
+  list.querySelectorAll('[data-catdismiss]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const name = btn.dataset.catdismiss;
+      const key = name.trim().toLowerCase();
+      if(!STORE.dismissedPresets) STORE.dismissedPresets=[];
+      if(!STORE.dismissedPresets.includes(key)) STORE.dismissedPresets.push(key);
       renderCatEditor(); save();
     });
   });
@@ -1064,6 +1099,11 @@ document.getElementById('catAddBtn').addEventListener('click',()=>{
   m.EV.push({type:'add_cat', name, date:new Date().toISOString()});
   inp.value='';
   renderRows(); renderChart(); renderCatEditor(); sched();
+});
+document.getElementById('catRestorePresetsBtn').addEventListener('click',()=>{
+  STORE.dismissedPresets = [];
+  renderCatEditor();
+  save();
 });
 
 // budget field is read-only: budget only changes via "+ Доход" or history editing
