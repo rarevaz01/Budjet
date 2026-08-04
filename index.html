@@ -1,0 +1,95 @@
+<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<style>
+:root{--bg:#151316;--card:#1e1b1f;--line:#2c282c;--text:#f4f2f0;--muted:#8d8790;--accent:#e8c96b}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,sans-serif}
+body{padding:20px 14px;display:flex;justify-content:center}
+.card{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:20px 16px;width:100%;max-width:520px}
+.head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+h1{font-weight:800;font-size:26px;margin:0}
+#status{font-size:12px;color:var(--muted)}
+#status.err{color:#e57373}
+#saveBtn{background:var(--accent);color:#151316;border:none;border-radius:10px;padding:8px 14px;font-weight:700;font-size:13px}
+.chart-col{display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:18px}
+svg{overflow:visible}
+.tot{display:flex;gap:20px;font-size:12px;color:var(--muted);text-align:center}
+.tot b{color:var(--text);font-size:15px;display:block;margin-top:2px}
+.tot b.neg{color:#e57373}
+.bwrap{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px}
+.binp{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:8px;color:var(--text);font-weight:700;font-size:14px;padding:6px 10px;width:100px}
+.row{display:grid;grid-template-columns:12px minmax(0,1fr) 78px 44px 22px;align-items:center;gap:6px;padding:8px 0;border-bottom:1px solid var(--line)}
+.sw{width:10px;height:10px;border-radius:3px}
+.ninp{background:transparent;border:none;color:var(--text);font-weight:600;font-size:12px;text-transform:uppercase;width:100%;min-width:0;padding:3px 2px}
+.ainp{background:transparent;border:none;color:var(--text);font-weight:700;font-size:12px;text-align:right;width:100%;min-width:0;padding:3px 2px}
+.pct{font-size:10px;color:var(--muted);text-align:right}
+.del{background:none;border:none;color:var(--muted);font-size:15px;width:22px;height:22px;border-radius:6px}
+.add{margin-top:12px;background:none;border:1px dashed var(--line);color:var(--muted);font-weight:600;font-size:12px;padding:9px 12px;border-radius:12px;width:100%;text-align:left}
+</style></head><body><div class="card">
+<div class="head"><h1>Бюджет</h1><div style="display:flex;align-items:center;gap:8px"><span id="status"></span><button id="saveBtn">Сохранить</button></div></div>
+<div class="chart-col">
+<svg id="donut" width="220" height="220" viewBox="0 0 300 300"></svg>
+<div class="tot"><div>Бюджет<b id="bd">-</b></div><div>Остаток<b id="ld">-</b></div></div>
+<div class="bwrap">Бюджет<input class="binp" id="bi" type="text" inputmode="decimal" value="300000"></div>
+</div>
+<div id="rows"></div>
+<button class="add" id="addRow">+ Добавить категорию</button>
+</div>
+<script>
+const P=["#e8c96b","#c97b5c","#7fa88f","#6f8fc9","#b47fc9","#d98fa0","#8fb4d9","#c9a87f","#9fc97f","#c97fa8","#7fc9c0","#c9c07f"];
+const K="icity-budget-v1";
+let B=300000,C=[{n:"Аренда",a:56000},{n:"Транспорт",a:7000},{n:"Одежда",a:15000},{n:"Развлечения",a:8000},{n:"Путешествия",a:20000},{n:"Дети",a:30000}];
+try{const r=localStorage.getItem(K);if(r){const p=JSON.parse(r);if(p.B!=null)B=p.B;if(Array.isArray(p.C))C=p.C}}catch(e){}
+const rowsEl=document.getElementById('rows'),svg=document.getElementById('donut'),bi=document.getElementById('bi'),st=document.getElementById('status'),sb=document.getElementById('saveBtn');
+function fmt(n){return new Intl.NumberFormat('ru-RU').format(Math.round(n||0))}
+function strip(v){return v.replace(/[^0-9.]/g,'').replace(/^0+(?=\d)/,'')}
+function save(){try{localStorage.setItem(K,JSON.stringify({B,C}));st.textContent="Сохранено ✓";st.classList.remove('err');setTimeout(()=>st.textContent='',1500)}catch(e){st.textContent="Ошибка";st.classList.add('err')}}
+let t=null;function sched(){if(t)clearTimeout(t);t=setTimeout(save,800)}
+function pol(cx,cy,r,a){const x=a*Math.PI/180;return{x:cx+r*Math.cos(x),y:cy+r*Math.sin(x)}}
+function arc(cx,cy,r,s,e){const S=pol(cx,cy,r,s),E=pol(cx,cy,r,e),L=e-s<=180?0:1;return`M ${S.x} ${S.y} A ${r} ${r} 0 ${L} 1 ${E.x} ${E.y}`}
+function renderRows(){
+  const total=C.reduce((s,c)=>s+(parseFloat(c.a)||0),0);
+  rowsEl.innerHTML='';
+  C.forEach((c,i)=>{
+    const pct=total>0?(c.a/total*100):0;
+    const row=document.createElement('div');row.className='row';
+    row.innerHTML=`<div class="sw" style="background:${P[i%P.length]}"></div><input class="ninp" value="${(c.n||'').replace(/"/g,'&quot;')}" data-i="${i}" data-f="n"><input class="ainp" type="text" inputmode="decimal" value="${c.a}" data-i="${i}" data-f="a"><div class="pct">${pct.toFixed(1)}%</div><button class="del" data-i="${i}">×</button>`;
+    rowsEl.appendChild(row);
+  });
+  attach();
+}
+function renderChart(){
+  const total=C.reduce((s,c)=>s+(parseFloat(c.a)||0),0),left=B-total;
+  document.getElementById('bd').textContent=fmt(B);
+  const ld=document.getElementById('ld');ld.textContent=fmt(left);ld.classList.toggle('neg',left<0);
+  svg.innerHTML='';
+  const cx=150,cy=150,r=130,ri=78,ns="http://www.w3.org/2000/svg",ct=Math.max(B,total);
+  if(ct<=0){const c=document.createElementNS(ns,"circle");c.setAttribute("cx",cx);c.setAttribute("cy",cy);c.setAttribute("r",r);c.setAttribute("fill","none");c.setAttribute("stroke","#2c282c");c.setAttribute("stroke-width",r-ri);svg.appendChild(c)}
+  else{
+    let a=-90;
+    C.forEach((c,i)=>{const v=parseFloat(c.a)||0;if(v<=0)return;const f=v/ct,sw=f*360;const p=arc(cx,cy,(r+ri)/2,a,a+sw);const el=document.createElementNS(ns,"path");el.setAttribute("d",p);el.setAttribute("stroke",P[i%P.length]);el.setAttribute("stroke-width",r-ri);el.setAttribute("fill","none");svg.appendChild(el);a+=sw});
+    if(left>0){const f=left/ct,sw=f*360;const p=arc(cx,cy,(r+ri)/2,a,a+sw);const el=document.createElementNS(ns,"path");el.setAttribute("d",p);el.setAttribute("stroke","#f4f2f0");el.setAttribute("stroke-width",r-ri);el.setAttribute("fill","none");svg.appendChild(el)}
+  }
+  const t1=document.createElementNS(ns,"text");t1.setAttribute("x",cx);t1.setAttribute("y",cy-4);t1.setAttribute("text-anchor","middle");t1.setAttribute("fill","#f4f2f0");t1.setAttribute("font-weight","800");t1.setAttribute("font-size",total>=1000000?26:32);t1.textContent=fmt(total);svg.appendChild(t1);
+  const t2=document.createElementNS(ns,"text");t2.setAttribute("x",cx);t2.setAttribute("y",cy+18);t2.setAttribute("text-anchor","middle");t2.setAttribute("fill","#8d8790");t2.setAttribute("font-size","10");t2.textContent="РАСХОДЫ";svg.appendChild(t2);
+}
+function pctOnly(){const total=C.reduce((s,c)=>s+(parseFloat(c.a)||0),0);document.querySelectorAll('.pct').forEach((el,i)=>{const v=parseFloat(C[i].a)||0;el.textContent=(total>0?(v/total*100):0).toFixed(1)+'%'})}
+function attach(){
+  document.querySelectorAll('[data-f]').forEach(inp=>{
+    inp.addEventListener('input',e=>{
+      const i=+e.target.dataset.i,f=e.target.dataset.f;
+      if(f==='a'){const cl=strip(e.target.value);if(cl!==e.target.value)e.target.value=cl;C[i].a=parseFloat(cl)||0;renderChart();pctOnly()}
+      else{C[i].n=e.target.value}
+      sched();
+    });
+    inp.addEventListener('focus',e=>e.target.select());
+  });
+  document.querySelectorAll('.del').forEach(b=>b.addEventListener('click',e=>{C.splice(+e.target.dataset.i,1);renderRows();renderChart();sched()}));
+}
+document.getElementById('addRow').addEventListener('click',()=>{C.push({n:"Новая категория",a:0});renderRows();renderChart();sched()});
+bi.value=String(B);
+bi.addEventListener('focus',e=>e.target.select());
+bi.addEventListener('input',e=>{const cl=strip(e.target.value);if(cl!==e.target.value)e.target.value=cl;B=parseFloat(cl)||0;renderChart();sched()});
+bi.addEventListener('blur',()=>{bi.value=String(B)});
+sb.addEventListener('click',save);
+renderRows();renderChart();
+</script></body></html>
