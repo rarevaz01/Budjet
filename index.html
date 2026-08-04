@@ -288,7 +288,7 @@ function formatLiveInput(inp){
   const formatted = parts.length>1 ? intPart+'.'+parts[1] : intPart;
   inp.value = formatted;
 }
-function numVal(v){ return parseFloat(String(v).replace(/[\u00A0\s]/g,''))||0; }
+function numVal(v){ return parseFloat(String(v).replace(/[\u00A0\s%]/g,''))||0; }
 function fmtDate(iso){
   const d=new Date(iso);
   return d.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'})+' '+d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
@@ -849,6 +849,12 @@ function attach(){
       const inp = document.querySelector(`.plus-input[data-i="${i}"]`);
       const active = btn.classList.toggle('active');
       inp.placeholder = active ? '% от бюджета' : 'сумма';
+      const digits = strip(inp.value);
+      if(active){
+        inp.value = digits ? digits+'%' : '';
+      } else {
+        formatLiveInput(inp);
+      }
       updatePctPreview(i);
     });
   });
@@ -885,7 +891,17 @@ function attach(){
     });
   });
   document.querySelectorAll('[data-plus]').forEach(inp=>{
-    inp.addEventListener('input',e=>{ formatLiveInput(e.target); updatePctPreview(+e.target.dataset.i); });
+    inp.addEventListener('input',e=>{
+      const i=+e.target.dataset.i;
+      const pctBtn=document.querySelector(`.pct-toggle-btn[data-i="${i}"]`);
+      if(pctBtn && pctBtn.classList.contains('active')){
+        const digits = strip(e.target.value);
+        e.target.value = digits ? digits+'%' : '';
+      } else {
+        formatLiveInput(e.target);
+      }
+      updatePctPreview(i);
+    });
     inp.addEventListener('keydown',e=>{
       if(e.key==='Enter'||e.key==='Go'||e.key==='Done'){
         e.preventDefault();
