@@ -42,7 +42,8 @@ svg{overflow:visible}
 .sw{width:10px;height:10px;border-radius:3px}
 .ninp{background:transparent;border:none;color:var(--text);font-weight:600;font-size:12px;text-transform:uppercase;width:100%;min-width:0;padding:3px 2px}
 .amt-display{font-weight:700;font-size:13px;text-align:right;font-variant-numeric:tabular-nums}
-.pct{font-size:10px;color:var(--muted);text-align:right}
+.pct{font-size:10px;color:var(--muted);text-align:right;background:none;border:none;padding:0;font-family:inherit}
+.pct-input{font-size:10px;color:var(--text);text-align:right;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:6px;width:44px;padding:2px 3px}
 .del{background:none;border:none;color:var(--muted);font-size:15px;width:22px;height:22px;border-radius:6px}
 .row-bottom{display:flex;flex-direction:column;gap:6px;margin-top:6px}
 .plus-input{background:rgba(109,199,134,.12);border:1px solid #6DC786;border-radius:10px;color:var(--text);font-size:13px;padding:9px 10px;width:0;min-width:0;height:40px;text-align:center;display:none;flex:1}
@@ -53,6 +54,10 @@ svg{overflow:visible}
 .plus-row{display:flex;align-items:center;gap:6px;width:100%}
 .plus-btn{background:#6DC786;border:none;color:var(--btn-text);font-weight:800;font-size:18px;width:100%;height:40px;border-radius:10px;flex-shrink:0;transition:width .15s ease}
 .plus-btn.compact{width:40px}
+.pct-toggle-btn{display:none;background:none;border:1px solid var(--line);color:var(--muted);width:40px;height:40px;border-radius:10px;font-size:14px;font-weight:700;flex-shrink:0}
+.pct-toggle-btn.show{display:block}
+.pct-toggle-btn.active{background:#FFD400;border-color:#FFD400;color:#1A1400}
+.pct-preview{font-size:12px;color:var(--text);font-weight:700;padding:2px 0 0 2px;min-height:16px}
 .hist-toggle-row{display:flex;justify-content:flex-start}
 .comment-row{display:flex;align-items:center;gap:6px}
 .hist-icon-btn{background:none;border:1px solid var(--line);color:var(--muted);border-radius:8px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative}
@@ -93,6 +98,20 @@ svg{overflow:visible}
 .gh-del{background:none;border:none;color:var(--muted);font-size:14px;width:26px;height:26px;border-radius:6px;flex-shrink:0}
 .gh-edit-icon{font-size:20px;font-weight:700;width:32px;height:32px}
 .gh-restore{background:none;border:1px solid #6DC786;color:#6DC786;font-weight:700;font-size:12px;padding:7px 12px;border-radius:8px}
+.cat-edit-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.cat-swipe-wrap{position:relative;overflow:hidden;border-bottom:1px solid var(--line)}
+.cat-swipe-content{position:relative;background:var(--card);touch-action:pan-y;will-change:transform}
+.cat-swipe-delete{position:absolute;top:0;right:0;bottom:0;width:80px;background:#E05A4E;color:#fff;font-weight:700;font-size:12px;border:none}
+.cat-edit-sw{width:12px;height:12px;border-radius:4px;flex-shrink:0}
+.cat-edit-name{flex:1;font-size:14px;font-weight:600;color:var(--text)}
+.cat-edit-name.dim{color:var(--muted);font-weight:500}
+.cat-edit-toggle{width:44px;height:26px;border-radius:13px;border:none;background:var(--line);position:relative;flex-shrink:0;transition:background .15s}
+.cat-edit-toggle.on{background:#6DC786}
+.cat-edit-toggle::after{content:'';position:absolute;top:2px;left:2px;width:22px;height:22px;border-radius:50%;background:#fff;transition:left .15s}
+.cat-edit-toggle.on::after{left:20px}
+.cat-add-row{display:flex;gap:8px;margin-top:14px}
+.cat-add-input{flex:1;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:10px;color:var(--text);font-size:13px;padding:10px}
+.cat-add-btn{background:#FFD400;color:#1A1400;border:none;border-radius:10px;padding:10px 16px;font-weight:700;font-size:13px;white-space:nowrap}
 </style></head><body><div class="card">
 <div class="head">
   <h1>Бюджет</h1>
@@ -136,7 +155,7 @@ svg{overflow:visible}
   </div>
 </div>
 <div id="rows"></div>
-<button class="add" id="addRow">Добавить категорию</button>
+<button class="add" id="openCatEditor">Изменить категории</button>
 </div>
 <div class="overlay" id="ghOverlay">
   <div class="sheet">
@@ -158,6 +177,16 @@ svg{overflow:visible}
     <div id="ghList"></div>
   </div>
 </div>
+<div class="overlay" id="catEditorOverlay">
+  <div class="sheet">
+    <div class="sheet-head"><h2>Категории</h2><button class="sheet-close" id="catEditorClose">×</button></div>
+    <div id="catEditorList"></div>
+    <div class="cat-add-row">
+      <input class="cat-add-input" id="catAddInput" type="text" placeholder="своя категория">
+      <button class="cat-add-btn" id="catAddBtn">Добавить</button>
+    </div>
+  </div>
+</div>
 <script>
 const P=["#3382F9","#F79009","#6DC786","#6699F5","#F7A83D","#8ED2A0","#1E5FC7","#C06F00","#3F8F56","#B8D0FB","#FBCE94","#C3E8CD"];
 function nextColor(existingCategories){
@@ -167,6 +196,7 @@ function nextColor(existingCategories){
 }
 const K="icity-budget-v2";
 const MONTH_NAMES=["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
+const PRESET_CATEGORIES=["Аренда","Транспорт","Одежда","Развлечения","Путешествия","Дети","Продукты","Здоровье","Образование","Подарки","Красота","Спорт","Подписки","Кафе и рестораны","Питомцы","Ремонт","Связь","Прочее"];
 
 function monthKey(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
 function monthLabel(key){
@@ -182,7 +212,8 @@ function monthLabel(key){
 function defaultMonthData(){
   return {
     B:0,
-    C:[{n:"Аренда",a:56000,h:[],col:P[0]},{n:"Транспорт",a:7000,h:[],col:P[1]},{n:"Одежда",a:15000,h:[],col:P[2]},{n:"Развлечения",a:8000,h:[],col:P[3]},{n:"Путешествия",a:20000,h:[],col:P[4]},{n:"Дети",a:30000,h:[],col:P[5]}],
+    C:[{n:"Аренда",a:0,h:[],col:P[0]},{n:"Транспорт",a:0,h:[],col:P[1]},{n:"Продукты",a:0,h:[],col:P[2]},{n:"Развлечения",a:0,h:[],col:P[3]}],
+    hiddenC:[],
     EV:[],
     IN:[]
   };
@@ -224,6 +255,7 @@ Object.values(STORE.months).forEach(month=>{
     if(!c.col) c.col = nextColor(month.C.slice(0,i));
   });
   if(!Array.isArray(month.IN)) month.IN = [];
+  if(!Array.isArray(month.hiddenC)) month.hiddenC = [];
 });
 
 // active month's data, aliased for convenience
@@ -305,8 +337,10 @@ function renderRows(){
       <div class="row-bottom">
         <form class="plus-row" data-plusform="${i}">
           <input class="plus-input" type="text" inputmode="decimal" placeholder="сумма" data-i="${i}" data-plus="1">
+          <button class="pct-toggle-btn" type="button" data-i="${i}" data-pcttoggle="1">%</button>
           <button class="plus-btn" type="button" data-plusbtn="${i}">+</button>
         </form>
+        <div class="pct-preview" id="pctPreview-${i}"></div>
         <div class="comment-row">
           <input class="comment-input" type="text" placeholder="комментарий" data-i="${i}" data-comment="1">
           <button class="hist-icon-btn" type="button" data-i="${i}" data-histbtn="1" aria-label="История категории" title="История категории">
@@ -776,42 +810,88 @@ function attach(){
       if(document.getElementById('ghOverlay').classList.contains('open')) renderGlobalHist();
     }
   }));
+  function updatePctPreview(i){
+    const inp = document.querySelector(`.plus-input[data-i="${i}"]`);
+    const pctBtn = document.querySelector(`.pct-toggle-btn[data-i="${i}"]`);
+    const preview = document.getElementById(`pctPreview-${i}`);
+    if(!inp || !pctBtn || !preview) return;
+    if(pctBtn.classList.contains('active')){
+      const raw = numVal(inp.value);
+      const m = cur();
+      const budgetTotal = parseFloat(m.B)||0;
+      const amount = Math.round(budgetTotal * raw/100);
+      preview.textContent = raw>0 ? `= ${fmt(amount)}` : '';
+    } else {
+      preview.textContent = '';
+    }
+  }
   document.querySelectorAll('[data-plusform]').forEach(form=>{
     form.addEventListener('submit',e=>{ e.preventDefault(); });
+  });
+  document.querySelectorAll('[data-pcttoggle]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const i = +btn.dataset.i;
+      const inp = document.querySelector(`.plus-input[data-i="${i}"]`);
+      const active = btn.classList.toggle('active');
+      inp.placeholder = active ? '% от бюджета' : 'сумма';
+      updatePctPreview(i);
+    });
   });
   document.querySelectorAll('[data-plusbtn]').forEach(btn=>{
     btn.addEventListener('click',e=>{
       const i=+btn.dataset.plusbtn;
       const inp=document.querySelector(`.plus-input[data-i="${i}"]`);
+      const pctBtn=document.querySelector(`.pct-toggle-btn[data-i="${i}"]`);
       if(!inp.classList.contains('show')){
         inp.classList.add('show');
+        pctBtn.classList.add('show');
         btn.classList.add('compact');
         inp.focus();
         return;
       }
-      const val = numVal(inp.value);
-      if(val<=0){
+      const raw = numVal(inp.value);
+      if(raw<=0){
         inp.focus();
         return;
       }
+      const m = cur();
+      const budgetTotal = parseFloat(m.B)||0;
+      const val = pctBtn.classList.contains('active') ? Math.round(budgetTotal * raw/100) : raw;
+      if(val<=0){ inp.focus(); return; }
       const commentInp=document.querySelector(`[data-comment][data-i="${i}"]`);
       addExpense(i, val, commentInp?commentInp.value:'');
       inp.value='';
+      inp.placeholder='сумма';
       inp.classList.remove('show');
+      pctBtn.classList.remove('show');
+      pctBtn.classList.remove('active');
       btn.classList.remove('compact');
+      updatePctPreview(i);
     });
   });
   document.querySelectorAll('[data-plus]').forEach(inp=>{
-    inp.addEventListener('input',e=>{ formatLiveInput(e.target); });
+    inp.addEventListener('input',e=>{ formatLiveInput(e.target); updatePctPreview(+e.target.dataset.i); });
     inp.addEventListener('keydown',e=>{
       if(e.key==='Enter'||e.key==='Go'||e.key==='Done'){
         e.preventDefault();
         const i=+e.target.dataset.i;
-        const val = numVal(e.target.value);
+        const raw = numVal(e.target.value);
+        if(raw<=0) return;
+        const pctBtn=document.querySelector(`.pct-toggle-btn[data-i="${i}"]`);
+        const m = cur();
+        const budgetTotal = parseFloat(m.B)||0;
+        const val = pctBtn && pctBtn.classList.contains('active') ? Math.round(budgetTotal * raw/100) : raw;
         if(val<=0) return;
         const commentInp=document.querySelector(`[data-comment][data-i="${i}"]`);
         addExpense(i, val, commentInp?commentInp.value:'');
+        e.target.value='';
+        e.target.placeholder='сумма';
+        e.target.classList.remove('show');
+        if(pctBtn){ pctBtn.classList.remove('show'); pctBtn.classList.remove('active'); }
+        const plusBtn=document.querySelector(`[data-plusbtn="${i}"]`);
+        if(plusBtn) plusBtn.classList.remove('compact');
         e.target.blur();
+        updatePctPreview(i);
       }
     });
   });
@@ -835,13 +915,155 @@ function attach(){
   });
 }
 
-document.getElementById('addRow').addEventListener('click',()=>{
+function attachCatSwipe(list){
+  const SWIPE_W = 80;
+  list.querySelectorAll('[data-swipeitem]').forEach(content=>{
+    let startX=0, startY=0, dx=0, dragging=false, decided=false, isHorizontal=false;
+    content.addEventListener('pointerdown', e=>{
+      startX = e.clientX; startY = e.clientY; dx=0; dragging=true; decided=false; isHorizontal=false;
+      content.style.transition='none';
+      try{ content.setPointerCapture(e.pointerId); }catch(err){}
+    });
+    content.addEventListener('pointermove', e=>{
+      if(!dragging) return;
+      const rawDx = e.clientX - startX;
+      const rawDy = e.clientY - startY;
+      if(!decided){
+        if(Math.abs(rawDx) > 6 || Math.abs(rawDy) > 6){
+          decided = true;
+          isHorizontal = Math.abs(rawDx) > Math.abs(rawDy);
+        } else {
+          return;
+        }
+      }
+      if(!isHorizontal) return;
+      e.preventDefault();
+      const currentOpen = content.classList.contains('swiped') ? -SWIPE_W : 0;
+      dx = Math.min(0, Math.max(-SWIPE_W, currentOpen + rawDx));
+      content.style.transform = `translateX(${dx}px)`;
+    });
+    function endDrag(){
+      if(!dragging) return;
+      dragging=false;
+      content.style.transition='transform .18s ease';
+      if(isHorizontal){
+        if(dx < -SWIPE_W/2){
+          content.style.transform = `translateX(-${SWIPE_W}px)`;
+          content.classList.add('swiped');
+        } else {
+          content.style.transform = 'translateX(0)';
+          content.classList.remove('swiped');
+        }
+      }
+    }
+    content.addEventListener('pointerup', endDrag);
+    content.addEventListener('pointercancel', endDrag);
+  });
+}
+
+function renderCatEditor(){
   const m = cur();
-  m.C.push({n:"Новая категория",a:0,h:[],col:nextColor(m.C)});
+  const list = document.getElementById('catEditorList');
+  const activeNames = new Set(m.C.map(c=>c.n.trim().toLowerCase()));
+  const hiddenNames = new Set((m.hiddenC||[]).map(c=>c.n.trim().toLowerCase()));
+
+  let html = '';
+  m.C.forEach((c,i)=>{
+    html += `
+      <div class="cat-edit-item">
+        <div class="cat-edit-sw" style="background:${c.col}"></div>
+        <div class="cat-edit-name">${c.n.replace(/</g,'&lt;')}</div>
+        <button class="cat-edit-toggle on" data-cathide="${i}"></button>
+      </div>`;
+  });
+  (m.hiddenC||[]).forEach((c,i)=>{
+    html += `
+      <div class="cat-swipe-wrap">
+        <button class="cat-swipe-delete" data-catdelhidden="${i}">Удалить</button>
+        <div class="cat-swipe-content" data-swipeitem="1">
+          <div class="cat-edit-item" style="border-bottom:none">
+            <div class="cat-edit-sw" style="background:${c.col}"></div>
+            <div class="cat-edit-name dim">${c.n.replace(/</g,'&lt;')}</div>
+            <button class="cat-edit-toggle" data-catshow="${i}"></button>
+          </div>
+        </div>
+      </div>`;
+  });
+  PRESET_CATEGORIES.forEach(name=>{
+    const key = name.trim().toLowerCase();
+    if(activeNames.has(key) || hiddenNames.has(key)) return;
+    html += `
+      <div class="cat-edit-item">
+        <div class="cat-edit-sw" style="background:var(--line)"></div>
+        <div class="cat-edit-name dim">${name}</div>
+        <button class="cat-edit-toggle" data-catadd="${name.replace(/"/g,'&quot;')}"></button>
+      </div>`;
+  });
+  list.innerHTML = html || '<div class="gh-empty">Нет доступных категорий</div>';
+
+  list.querySelectorAll('[data-cathide]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const i = +btn.dataset.cathide;
+      const m2 = cur();
+      const [cat] = m2.C.splice(i,1);
+      if(!m2.hiddenC) m2.hiddenC=[];
+      m2.hiddenC.push(cat);
+      renderRows(); renderChart(); renderCatEditor(); save();
+    });
+  });
+  list.querySelectorAll('[data-catshow]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const i = +btn.dataset.catshow;
+      const m2 = cur();
+      const [cat] = m2.hiddenC.splice(i,1);
+      m2.C.push(cat);
+      renderRows(); renderChart(); renderCatEditor(); save();
+    });
+  });
+  list.querySelectorAll('[data-catdelhidden]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const i = +btn.dataset.catdelhidden;
+      const m2 = cur();
+      const cat = m2.hiddenC[i];
+      if(!cat) return;
+      if(!confirm(`Удалить категорию «${cat.n}» насовсем? Это действие нельзя отменить.`)) return;
+      m2.hiddenC.splice(i,1);
+      renderCatEditor(); save();
+    });
+  });
+  attachCatSwipe(list);
+  list.querySelectorAll('[data-catadd]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const name = btn.dataset.catadd;
+      const m2 = cur();
+      m2.C.push({n:name, a:0, h:[], col:nextColor(m2.C)});
+      if(!m2.EV) m2.EV=[];
+      m2.EV.push({type:'add_cat', name, date:new Date().toISOString()});
+      renderRows(); renderChart(); renderCatEditor(); sched();
+    });
+  });
+}
+
+document.getElementById('openCatEditor').addEventListener('click',()=>{
+  renderCatEditor();
+  document.getElementById('catEditorOverlay').classList.add('open');
+});
+document.getElementById('catEditorClose').addEventListener('click',()=>{
+  document.getElementById('catEditorOverlay').classList.remove('open');
+});
+document.getElementById('catEditorOverlay').addEventListener('click',e=>{
+  if(e.target.id==='catEditorOverlay') document.getElementById('catEditorOverlay').classList.remove('open');
+});
+document.getElementById('catAddBtn').addEventListener('click',()=>{
+  const inp = document.getElementById('catAddInput');
+  const name = inp.value.trim();
+  if(!name) return;
+  const m = cur();
+  m.C.push({n:name, a:0, h:[], col:nextColor(m.C)});
   if(!m.EV) m.EV=[];
-  m.EV.push({type:'add_cat', name:"Новая категория", date:new Date().toISOString()});
-  renderRows();renderChart();sched();
-  if(document.getElementById('ghOverlay').classList.contains('open')) renderGlobalHist();
+  m.EV.push({type:'add_cat', name, date:new Date().toISOString()});
+  inp.value='';
+  renderRows(); renderChart(); renderCatEditor(); sched();
 });
 
 // budget field is read-only: budget only changes via "+ Доход" or history editing
@@ -884,7 +1106,7 @@ document.getElementById('newMonthBtn').addEventListener('click',()=>{
   const sourceKey = STORE.order.length ? STORE.order[STORE.order.length-1] : lastKey;
   const prev = STORE.months[sourceKey] || STORE.months[lastKey];
   const newCategories = prev.C.map(c=>({n:c.n, a:0, h:[], col:c.col || nextColor([])}));
-  STORE.months[newKey] = { B: 0, C: newCategories, EV: [], IN: [] };
+  STORE.months[newKey] = { B: 0, C: newCategories, hiddenC: [], EV: [], IN: [] };
   STORE.order.push(newKey);
   STORE.current = newKey;
   renderMonthSelect();
