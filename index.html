@@ -11,6 +11,7 @@ h1{font-weight:800;font-size:26px;margin:0}
 .month-row{display:flex;align-items:center;gap:8px;margin-bottom:18px}
 .month-select{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:10px;color:var(--text);font-weight:700;font-size:14px;padding:9px 10px;flex:1;min-width:0}
 .month-add{background:var(--accent);color:var(--btn-text);border:none;border-radius:10px;padding:9px 12px;font-weight:700;font-size:13px;flex-shrink:0;white-space:nowrap}
+.month-del{background:none;border:1px solid var(--line);color:var(--muted);border-radius:10px;padding:9px 12px;font-size:15px;flex-shrink:0}
 #status{font-size:11px;color:var(--muted)}
 #status.err{color:#e57373}
 .chart-col{display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:18px}
@@ -27,13 +28,16 @@ svg{overflow:visible}
 .amt-display{font-weight:700;font-size:13px;text-align:right;font-variant-numeric:tabular-nums}
 .pct{font-size:10px;color:var(--muted);text-align:right}
 .del{background:none;border:none;color:var(--muted);font-size:15px;width:22px;height:22px;border-radius:6px}
-.row-bottom{display:flex;align-items:center;gap:6px;margin-top:6px;padding-left:18px}
-.plus-input{background:rgba(127,168,143,.12);border:1px solid #7fa88f;border-radius:10px;color:var(--text);font-size:13px;padding:9px 10px;width:100px;min-width:0;height:40px;text-align:center}
+.row-bottom{display:flex;flex-direction:column;gap:6px;margin-top:6px;padding-left:18px}
+.plus-input{background:rgba(127,168,143,.12);border:1px solid #7fa88f;border-radius:10px;color:var(--text);font-size:13px;padding:9px 10px;width:0;min-width:0;height:40px;text-align:center;display:none;flex:1}
+.plus-input.show{display:block}
 .plus-input::placeholder{color:#a8c9b4}
-.comment-input{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:10px;color:var(--text);font-size:12px;padding:9px 10px;width:100%;min-width:0;height:40px;margin-top:6px}
+.comment-input{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:10px;color:var(--text);font-size:12px;padding:9px 10px;width:100%;min-width:0;height:40px}
 .comment-input::placeholder{color:var(--muted)}
-.plus-row{display:flex;align-items:center;gap:6px}
-.plus-btn{background:#7fa88f;border:none;color:var(--btn-text);font-weight:800;font-size:18px;width:40px;height:40px;border-radius:10px;flex-shrink:0}
+.plus-row{display:flex;align-items:center;gap:6px;width:100%}
+.plus-btn{background:#7fa88f;border:none;color:var(--btn-text);font-weight:800;font-size:18px;width:100%;height:40px;border-radius:10px;flex-shrink:0;transition:width .15s ease}
+.plus-btn.compact{width:40px}
+.hist-toggle-row{display:flex;justify-content:flex-start}
 .hist-toggle{background:none;border:none;color:var(--muted);font-size:10px;text-decoration:underline;padding:2px 4px;flex-shrink:0}
 .hist{margin-top:6px;padding-left:18px;display:none}
 .hist.open{display:block}
@@ -64,11 +68,13 @@ svg{overflow:visible}
 .gh-comment-input{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:8px;color:var(--text);font-size:12px;padding:6px 8px;flex:1;min-width:0}
 .gh-save{background:#7fa88f;border:none;color:var(--btn-text);font-weight:700;font-size:12px;padding:7px 10px;border-radius:8px;flex-shrink:0}
 .gh-del{background:none;border:none;color:var(--muted);font-size:14px;width:26px;height:26px;border-radius:6px;flex-shrink:0}
+.gh-restore{background:none;border:1px solid #7fa88f;color:#7fa88f;font-weight:700;font-size:12px;padding:7px 12px;border-radius:8px}
 </style></head><body><div class="card">
 <div class="head"><h1>Бюджет</h1><span id="status"></span></div>
 <div class="month-row">
   <select class="month-select" id="monthSelect"></select>
   <button class="month-add" id="newMonthBtn">+ Новый месяц</button>
+  <button class="month-del" id="delMonthBtn">🗑</button>
 </div>
 <div class="chart-col">
 <svg id="donut" width="220" height="220" viewBox="0 0 300 300"></svg>
@@ -169,13 +175,14 @@ function switchMonth(key){
 }
 
 function renderRows(){
-  const C = cur().C;
+  const m = cur();
+  const C = m.C;
   const openHist = new Set();
   document.querySelectorAll('.hist.open').forEach(el=>openHist.add(el.id));
-  const total=C.reduce((s,c)=>s+(parseFloat(c.a)||0),0);
+  const budgetTotal = parseFloat(m.B)||0;
   rowsEl.innerHTML='';
   C.forEach((c,i)=>{
-    const pct=total>0?(c.a/total*100):0;
+    const pct=budgetTotal>0?(c.a/budgetTotal*100):0;
     const histCount=(c.h||[]).length;
     const row=document.createElement('div');row.className='row';
     row.innerHTML=`
@@ -188,11 +195,11 @@ function renderRows(){
       </div>
       <div class="row-bottom">
         <form class="plus-row" data-plusform="${i}">
-          <input class="plus-input" type="text" inputmode="decimal" placeholder="добавить" data-i="${i}" data-plus="1">
-          <button class="plus-btn" type="submit">+</button>
-          ${histCount>0?`<button class="hist-toggle" type="button" data-i="${i}" data-histbtn="1">история (${histCount})</button>`:''}
+          <input class="plus-input" type="text" inputmode="decimal" placeholder="сумма" data-i="${i}" data-plus="1">
+          <button class="plus-btn" type="button" data-plusbtn="${i}">+</button>
         </form>
         <input class="comment-input" type="text" placeholder="комментарий" data-i="${i}" data-comment="1">
+        ${histCount>0?`<div class="hist-toggle-row"><button class="hist-toggle" type="button" data-i="${i}" data-histbtn="1">история (${histCount})</button></div>`:''}
       </div>
       <div class="hist${openHist.has('hist-'+i)?' open':''}" id="hist-${i}">
         ${(c.h||[]).map((item,hi)=>({item,hi})).reverse().map(({item,hi})=>`<div class="hist-item"><div class="hist-top"><span>${fmtDate(item.d)}</span><b>+${fmt(item.a)}</b>${item.c?`<span class="hist-comment" data-commenttoggle="1">${item.c.replace(/</g,'&lt;')}</span>`:''}<button class="hist-del" data-i="${i}" data-hi="${hi}">×</button></div></div>`).join('')}
@@ -271,9 +278,9 @@ function getAllExpenses(){
       all.push({kind:'expense', ci, hi, catName:c.n, catColor:P[ci%P.length], amount:item.a, comment:item.c, date:item.d});
     });
   });
-  (m.EV||[]).forEach(ev=>{
+  (m.EV||[]).forEach((ev,evIndex)=>{
     if(ev.type==='del_cat'){
-      all.push({kind:'del_cat', catName:ev.name, amount:ev.amount, h:ev.h||[], date:ev.date});
+      all.push({kind:'del_cat', evIndex, catName:ev.name, amount:ev.amount, h:ev.h||[], date:ev.date, restored:!!ev.restored});
     } else if(ev.type==='add_cat'){
       all.push({kind:'add_cat', catName:ev.name, date:ev.date});
     } else if(ev.type==='rename_cat'){
@@ -329,6 +336,7 @@ function renderGlobalHist(){
             Сумма на момент удаления: <b style="color:var(--text)">${fmt(item.amount)}</b>
             ${hist.length>0?`<div style="margin-top:4px">${hist.map(h=>`<div>• +${fmt(h.a)}${h.c?` — ${h.c.replace(/</g,'&lt;')}`:''} <span style="opacity:.7">(${fmtDate(h.d)})</span></div>`).join('')}</div>`:''}
           </div>
+          ${item.restored ? `<div style="font-size:11px;color:#7fa88f;margin-top:6px;padding-left:16px">✓ восстановлена</div>` : `<div style="margin-top:8px;padding-left:16px"><button class="gh-restore" data-ghrestore="${item.evIndex}">Вернуть категорию</button></div>`}
         </div>
       `;
     }
@@ -401,6 +409,21 @@ function attachGlobalHist(){
       save();
     });
   });
+  document.querySelectorAll('[data-ghrestore]').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      const evIndex = +e.target.dataset.ghrestore;
+      const m = cur();
+      const ev = m.EV[evIndex];
+      if(!ev || ev.type!=='del_cat' || ev.restored) return;
+      if(!confirm(`Вернуть категорию «${ev.name}» с суммой ${fmt(ev.amount)} и историей трат?`)) return;
+      m.C.push({n: ev.name, a: ev.amount, h: ev.h || []});
+      ev.restored = true;
+      renderRows();
+      renderChart();
+      renderGlobalHist();
+      save();
+    });
+  });
 }
 
 function attach(){
@@ -440,13 +463,28 @@ function attach(){
     }
   }));
   document.querySelectorAll('[data-plusform]').forEach(form=>{
-    form.addEventListener('submit',e=>{
-      e.preventDefault();
-      const i=+form.dataset.plusform;
-      const inp=form.querySelector('[data-plus]');
+    form.addEventListener('submit',e=>{ e.preventDefault(); });
+  });
+  document.querySelectorAll('[data-plusbtn]').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      const i=+btn.dataset.plusbtn;
+      const inp=document.querySelector(`.plus-input[data-i="${i}"]`);
+      if(!inp.classList.contains('show')){
+        inp.classList.add('show');
+        btn.classList.add('compact');
+        inp.focus();
+        return;
+      }
+      const val = parseFloat(inp.value)||0;
+      if(val<=0){
+        inp.focus();
+        return;
+      }
       const commentInp=document.querySelector(`[data-comment][data-i="${i}"]`);
-      addExpense(i, parseFloat(inp.value)||0, commentInp?commentInp.value:'');
-      inp.blur();
+      addExpense(i, val, commentInp?commentInp.value:'');
+      inp.value='';
+      inp.classList.remove('show');
+      btn.classList.remove('compact');
     });
   });
   document.querySelectorAll('[data-plus]').forEach(inp=>{
@@ -458,8 +496,10 @@ function attach(){
       if(e.key==='Enter'||e.key==='Go'||e.key==='Done'){
         e.preventDefault();
         const i=+e.target.dataset.i;
+        const val = parseFloat(e.target.value)||0;
+        if(val<=0) return;
         const commentInp=document.querySelector(`[data-comment][data-i="${i}"]`);
-        addExpense(i, parseFloat(e.target.value)||0, commentInp?commentInp.value:'');
+        addExpense(i, val, commentInp?commentInp.value:'');
         e.target.blur();
       }
     });
@@ -519,6 +559,24 @@ document.getElementById('newMonthBtn').addEventListener('click',()=>{
   const newCategories = prev.C.map(c=>({n:c.n, a:0, h:[]}));
   STORE.months[newKey] = { B: prev.B, C: newCategories, EV: [] };
   STORE.current = newKey;
+  renderMonthSelect();
+  bi.value = String(cur().B);
+  renderRows();
+  renderChart();
+  save();
+});
+
+document.getElementById('delMonthBtn').addEventListener('click',()=>{
+  const keys = Object.keys(STORE.months).sort();
+  if(keys.length<=1){
+    alert('Нельзя удалить единственный месяц.');
+    return;
+  }
+  const label = monthLabel(STORE.current);
+  if(!confirm(`Удалить «${label}» полностью? Все категории, суммы и история этого месяца будут потеряны безвозвратно.`)) return;
+  delete STORE.months[STORE.current];
+  const remaining = Object.keys(STORE.months).sort();
+  STORE.current = remaining[remaining.length-1];
   renderMonthSelect();
   bi.value = String(cur().B);
   renderRows();
